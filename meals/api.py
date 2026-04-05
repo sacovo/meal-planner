@@ -1,4 +1,5 @@
 from meals.models import Inventory
+from django.db import models
 import os
 from typing import List
 from django.shortcuts import get_object_or_404
@@ -14,35 +15,68 @@ from .schemas import (
     RecipeIngredientSchema, RecipeIngredientCreateOrMapSchema,
     RecipeImportRequestSchema, CampMealSchema, CampMealCreateSchema,
     CampMealUpdateSchema, DietaryPreferenceSchema, ShoppingListGenerateRequestSchema,
-    ShoppingListItemSchema, ShoppingListOverviewSchema
+    ShoppingListItemSchema, ShoppingListOverviewSchema, CollaboratorInviteSchema
 )
 from .tasks import classify_ingredient, estimate_conversion_multiplier, import_recipe_ai_task, internal_add_ingredient_to_recipe
 
 router = Router()
 User = get_user_model()
 
+def check_camp_access(camp_id, user):
+    return get_object_or_404(Camp, models.Q(id=camp_id) & (models.Q(owner=user) | models.Q(collaborators=user)))
+
 @router.get("/camps", response=list[CampSchema])
 def list_camps(request):
-    return Camp.objects.all()
+    return Camp.objects.filter(
+        models.Q(owner=request.user) | models.Q(collaborators=request.user)
+    ).distinct()
 
 @router.post("/camps", response=CampSchema)
 def create_camp(request, data: CampCreateSchema):
-    owner = User.objects.first() # Placeholder
-    camp = Camp.objects.create(**data.dict(), owner=owner)
+    camp = Camp.objects.create(**data.dict(), owner=request.user)
     return camp
 
 @router.get("/camps/{camp_id}", response=CampSchema)
 def get_camp(request, camp_id: str):
-    return get_object_or_404(Camp, id=camp_id)
+    return get_object_or_404(Camp, models.Q(id=camp_id) & (models.Q(owner=request.user) | models.Q(collaborators=request.user)))
 
 @router.put("/camps/{camp_id}", response=CampSchema)
 def update_camp(request, camp_id: str, data: CampUpdateSchema):
     camp = get_object_or_404(Camp, id=camp_id)
+    if camp.owner != request.user and not camp.collaborators.filter(id=request.user.id).exists():
+        raise PermissionError("You don't have access to this camp")
+    
     update_data = data.dict(exclude_unset=True)
     for attr, value in update_data.items():
         setattr(camp, attr, value)
     camp.save()
     return camp
+
+@router.delete("/camps/{camp_id}")
+def delete_camp(request, camp_id: str):
+    camp = get_object_or_404(Camp, id=camp_id, owner=request.user)
+    camp.delete()
+    return {"success": True}
+
+@router.post("/camps/{camp_id}/collaborators", response=CampSchema)
+def invite_collaborator(request, camp_id: str, data: CollaboratorInviteSchema):
+    camp = get_object_or_404(Camp, id=camp_id, owner=request.user)
+    new_member = get_object_or_404(User, username=data.username)
+    if new_member == camp.owner:
+        raise ValueError("Cannot invite the owner")
+    camp.collaborators.add(new_member)
+    return camp
+
+@router.delete("/camps/{camp_id}/collaborators/{username}")
+def remove_collaborator(request, camp_id: str, username: str):
+    camp = get_object_or_404(Camp, id=camp_id)
+    # Only owner can remove others, but users can remove themselves
+    if camp.owner != request.user and request.user.username != username:
+        raise PermissionError("Only the owner can remove other collaborators")
+    
+    user_to_remove = get_object_or_404(User, username=username)
+    camp.collaborators.remove(user_to_remove)
+    return {"success": True}
 
 @router.get("/auth/me", auth=None)
 def get_current_user_status(request):
@@ -59,7 +93,7 @@ def toggle_camp_meal_done(request, camp_id: str, meal_id: str):
 
 @router.get("/camps/{camp_id}/inventory-status", response=List[InventoryStatusSchema])
 def get_inventory_status(request, camp_id: str):
-    camp = get_object_or_404(Camp, id=camp_id)
+    camp = check_camp_access(camp_id, request.user)
     
     # 1. Total requirements for non-done meals
     remaining_meals = CampMeal.objects.filter(camp=camp, is_done=False).prefetch_related('recipe__ingredients__ingredient')
@@ -201,11 +235,12 @@ def list_preferences(request):
 
 @router.get("/camps/{camp_id}/meals", response=list[CampMealSchema])
 def list_camp_meals(request, camp_id: str):
+    camp = check_camp_access(camp_id, request.user)
     return CampMeal.objects.filter(camp_id=camp_id).select_related('serves_preference').order_by("date", "meal_type")
 
 @router.post("/camps/{camp_id}/meals", response=CampMealSchema)
 def create_camp_meal(request, camp_id: str, data: CampMealCreateSchema):
-    camp = get_object_or_404(Camp, id=camp_id)
+    camp = check_camp_access(camp_id, request.user)
     recipe = get_object_or_404(Recipe, id=data.recipe_id)
     meal = CampMeal.objects.create(
         camp=camp,
@@ -235,15 +270,17 @@ def delete_camp_meal(request, camp_id: str, meal_id: str):
 
 @router.get("/camps/{camp_id}/general-items", response=list[GeneralCampItemSchema])
 def list_camp_general_items(request, camp_id: str):
+    camp = check_camp_access(camp_id, request.user)
     return GeneralCampItem.objects.filter(camp_id=camp_id)
 
 @router.post("/camps/{camp_id}/general-items", response=GeneralCampItemSchema)
 def create_camp_general_item(request, camp_id: str, data: GeneralCampItemCreateSchema):
-    camp = get_object_or_404(Camp, id=camp_id)
+    camp = check_camp_access(camp_id, request.user)
     return GeneralCampItem.objects.create(camp=camp, **data.dict())
 
 @router.delete("/camps/{camp_id}/general-items/{item_id}")
 def delete_camp_general_item(request, camp_id: str, item_id: str):
+    camp = check_camp_access(camp_id, request.user)
     item = get_object_or_404(GeneralCampItem, camp_id=camp_id, id=item_id)
     item.delete()
     return {"success": True}
@@ -271,7 +308,7 @@ def add_manual_shopping_item(request, camp_id: str, data: ShoppingListManualItem
 
 @router.post("/camps/{camp_id}/shopping-list/generate", response=ShoppingListSchema)
 def generate_shopping_list(request, camp_id: str, data: ShoppingListGenerateRequestSchema):
-    camp = get_object_or_404(Camp, id=camp_id)
+    camp = check_camp_access(camp_id, request.user)
     meals = list(CampMeal.objects.filter(camp=camp, id__in=data.meal_ids).select_related('recipe'))
     sl = ShoppingList.objects.create(camp=camp)
     sl.meals.set(meals)
@@ -339,6 +376,7 @@ def get_shopping_list(request, list_id: str):
 
 @router.get("/camps/{camp_id}/shopping-lists", response=list[ShoppingListOverviewSchema])
 def list_camp_shopping_lists(request, camp_id: str):
+    camp = check_camp_access(camp_id, request.user)
     lists = ShoppingList.objects.filter(camp_id=camp_id).prefetch_related('meals__recipe').order_by('-created_at')
     result = []
     for sl in lists:

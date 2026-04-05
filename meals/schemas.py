@@ -34,9 +34,20 @@ class IngredientCreateSchema(ModelSchema):
         fields = ["name", "category", "base_unit"]
 
 class CampSchema(ModelSchema):
+    owner_username: str = None
+    collaborators: List[str] = []
+
+    @staticmethod
+    def resolve_owner_username(obj):
+        return obj.owner.username
+
+    @staticmethod
+    def resolve_collaborators(obj):
+        return [c.username for c in obj.collaborators.all()]
+
     class Meta:
         model = Camp
-        fields = ["id", "name", "default_people_count", "start_date", "end_date", "owner", "notes"]
+        fields = ["id", "name", "default_people_count", "start_date", "end_date", "notes"]
 
 class CampCreateSchema(Schema):
     name: str
@@ -48,6 +59,9 @@ class CampUpdateSchema(Schema):
     name: Optional[str] = None
     default_people_count: Optional[int] = None
     notes: Optional[str] = None
+
+class CollaboratorInviteSchema(Schema):
+    username: str
 
 class CampMealSchema(ModelSchema):
     serves_preference: DietaryPreferenceSchema | None = None

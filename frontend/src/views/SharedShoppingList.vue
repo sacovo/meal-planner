@@ -112,10 +112,6 @@ onUnmounted(() => {
       <button class="btn btn-secondary" @click="copyLink">🔗 Share Link</button>
     </div>
 
-    <div v-if="!shoppingList.value?.items?.length" class="card text-center text-mute" style="padding: 3rem;">
-      <h3 style="color: var(--color-primary);">List is empty</h3>
-      <p>Add some items to get started.</p>
-    </div>
 
     <!-- Grouped Categories -->
     <div v-for="(items, category) in itemsByCategory" :key="category" class="card" :style="categoryCounts[category as string].done === categoryCounts[category as string].total ? 'opacity: 0.7; border-style: dashed;' : ''">

@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CoreApiAccountData, CoreApiAccountResponses, CoreApiChangePasswordViewData, CoreApiChangePasswordViewErrors, CoreApiChangePasswordViewResponses, CoreApiLoginViewData, CoreApiLoginViewErrors, CoreApiLoginViewResponses, CoreApiLogoutViewData, CoreApiLogoutViewResponses, CoreApiSetLanguageData, CoreApiSetLanguageResponses, MealsApiAddManualShoppingItemData, MealsApiAddManualShoppingItemResponses, MealsApiAddRecipeIngredientData, MealsApiAddRecipeIngredientResponses, MealsApiCreateCampData, MealsApiCreateCampGeneralItemData, MealsApiCreateCampGeneralItemResponses, MealsApiCreateCampMealData, MealsApiCreateCampMealResponses, MealsApiCreateCampResponses, MealsApiCreateIngredientData, MealsApiCreateIngredientResponses, MealsApiCreateRecipeData, MealsApiCreateRecipeResponses, MealsApiDeleteCampGeneralItemData, MealsApiDeleteCampGeneralItemResponses, MealsApiDeleteCampMealData, MealsApiDeleteCampMealResponses, MealsApiDeleteRecipeIngredientData, MealsApiDeleteRecipeIngredientResponses, MealsApiDeleteShoppingListData, MealsApiDeleteShoppingListResponses, MealsApiGenerateShoppingListData, MealsApiGenerateShoppingListResponses, MealsApiGetCampData, MealsApiGetCampResponses, MealsApiGetCurrentUserStatusData, MealsApiGetCurrentUserStatusResponses, MealsApiGetInventoryStatusData, MealsApiGetInventoryStatusResponses, MealsApiGetRecipeData, MealsApiGetRecipeResponses, MealsApiGetSharedShoppingListData, MealsApiGetSharedShoppingListResponses, MealsApiGetShoppingListData, MealsApiGetShoppingListResponses, MealsApiImportRecipeData, MealsApiImportRecipeResponses, MealsApiListCampGeneralItemsData, MealsApiListCampGeneralItemsResponses, MealsApiListCampMealsData, MealsApiListCampMealsResponses, MealsApiListCampsData, MealsApiListCampShoppingListsData, MealsApiListCampShoppingListsResponses, MealsApiListCampsResponses, MealsApiListIngredientsData, MealsApiListIngredientsResponses, MealsApiListPreferencesData, MealsApiListPreferencesResponses, MealsApiListRecipeIngredientsData, MealsApiListRecipeIngredientsResponses, MealsApiListRecipesData, MealsApiListRecipesResponses, MealsApiListUnitsData, MealsApiListUnitsResponses, MealsApiToggleCampMealDoneData, MealsApiToggleCampMealDoneResponses, MealsApiToggleSharedShoppingItemData, MealsApiToggleSharedShoppingItemResponses, MealsApiUpdateCampData, MealsApiUpdateCampMealData, MealsApiUpdateCampMealResponses, MealsApiUpdateCampResponses, MealsApiUpdateRecipeData, MealsApiUpdateRecipeIngredientData, MealsApiUpdateRecipeIngredientResponses, MealsApiUpdateRecipeResponses } from './types.gen';
+import type { CoreApiAccountData, CoreApiAccountResponses, CoreApiChangePasswordViewData, CoreApiChangePasswordViewErrors, CoreApiChangePasswordViewResponses, CoreApiLoginViewData, CoreApiLoginViewErrors, CoreApiLoginViewResponses, CoreApiLogoutViewData, CoreApiLogoutViewResponses, CoreApiSetLanguageData, CoreApiSetLanguageResponses, MealsApiAddManualShoppingItemData, MealsApiAddManualShoppingItemResponses, MealsApiAddRecipeIngredientData, MealsApiAddRecipeIngredientResponses, MealsApiCreateCampData, MealsApiCreateCampGeneralItemData, MealsApiCreateCampGeneralItemResponses, MealsApiCreateCampMealData, MealsApiCreateCampMealResponses, MealsApiCreateCampResponses, MealsApiCreateIngredientData, MealsApiCreateIngredientResponses, MealsApiCreateRecipeData, MealsApiCreateRecipeResponses, MealsApiDeleteCampData, MealsApiDeleteCampGeneralItemData, MealsApiDeleteCampGeneralItemResponses, MealsApiDeleteCampMealData, MealsApiDeleteCampMealResponses, MealsApiDeleteCampResponses, MealsApiDeleteRecipeIngredientData, MealsApiDeleteRecipeIngredientResponses, MealsApiDeleteShoppingListData, MealsApiDeleteShoppingListResponses, MealsApiGenerateShoppingListData, MealsApiGenerateShoppingListResponses, MealsApiGetCampData, MealsApiGetCampResponses, MealsApiGetCurrentUserStatusData, MealsApiGetCurrentUserStatusResponses, MealsApiGetInventoryStatusData, MealsApiGetInventoryStatusResponses, MealsApiGetRecipeData, MealsApiGetRecipeResponses, MealsApiGetSharedShoppingListData, MealsApiGetSharedShoppingListResponses, MealsApiGetShoppingListData, MealsApiGetShoppingListResponses, MealsApiImportRecipeData, MealsApiImportRecipeResponses, MealsApiInviteCollaboratorData, MealsApiInviteCollaboratorResponses, MealsApiListCampGeneralItemsData, MealsApiListCampGeneralItemsResponses, MealsApiListCampMealsData, MealsApiListCampMealsResponses, MealsApiListCampsData, MealsApiListCampShoppingListsData, MealsApiListCampShoppingListsResponses, MealsApiListCampsResponses, MealsApiListIngredientsData, MealsApiListIngredientsResponses, MealsApiListPreferencesData, MealsApiListPreferencesResponses, MealsApiListRecipeIngredientsData, MealsApiListRecipeIngredientsResponses, MealsApiListRecipesData, MealsApiListRecipesResponses, MealsApiListUnitsData, MealsApiListUnitsResponses, MealsApiRemoveCollaboratorData, MealsApiRemoveCollaboratorResponses, MealsApiToggleCampMealDoneData, MealsApiToggleCampMealDoneResponses, MealsApiToggleSharedShoppingItemData, MealsApiToggleSharedShoppingItemResponses, MealsApiUpdateCampData, MealsApiUpdateCampMealData, MealsApiUpdateCampMealResponses, MealsApiUpdateCampResponses, MealsApiUpdateRecipeData, MealsApiUpdateRecipeIngredientData, MealsApiUpdateRecipeIngredientResponses, MealsApiUpdateRecipeResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -108,6 +108,19 @@ export const mealsApiCreateCamp = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * Delete Camp
+ */
+export const mealsApiDeleteCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteCampData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteCampResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}',
+    ...options
+});
+
+/**
  * Get Camp
  */
 export const mealsApiGetCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetCampData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetCampResponses, unknown, ThrowOnError>({
@@ -135,6 +148,36 @@ export const mealsApiUpdateCamp = <ThrowOnError extends boolean = false>(options
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Invite Collaborator
+ */
+export const mealsApiInviteCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiInviteCollaboratorData, ThrowOnError>) => (options.client ?? client).post<MealsApiInviteCollaboratorResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/collaborators',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove Collaborator
+ */
+export const mealsApiRemoveCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiRemoveCollaboratorData, ThrowOnError>) => (options.client ?? client).delete<MealsApiRemoveCollaboratorResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/collaborators/{username}',
+    ...options
 });
 
 /**

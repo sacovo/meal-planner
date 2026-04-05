@@ -15,6 +15,7 @@ class Camp(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="camps")
+    collaborators = models.ManyToManyField(User, related_name="collaboration_camps", blank=True)
     notes = models.TextField(blank=True, help_text="General notes for the camp (e.g., special events, allergies summary)")
 
     def __str__(self):

@@ -137,9 +137,6 @@ def account(request):
             "username": request.user.username,
             "is_staff": request.user.is_staff,
             "is_superuser": request.user.is_superuser,
-            "verified": request.user.is_verified() or request.agent.is_trusted,
-            "otp": request.user.is_verified(),
-            "is_trusted": request.agent.is_trusted,
             "full_name": request.user.get_full_name(),
         }
     return {"username": None, "is_staff": None, "is_superuser": None}

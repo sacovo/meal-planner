@@ -12,6 +12,7 @@ import {
   type RecipeSchema,
   type RecipeIngredientSchema
 } from '../client'
+import MarkdownView from '../components/MarkdownView.vue'
 // @ts-ignore
 import html2pdf from 'html2pdf.js'
 
@@ -165,7 +166,8 @@ onMounted(fetchData)
           <div>
             <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-bg-mute);">Instructions</h3>
             <div class="instructions-text">
-              {{ getRecipe(meal.recipe)?.instructions || 'No instructions provided.' }}
+              <MarkdownView v-if="getRecipe(meal.recipe)?.instructions" :content="getRecipe(meal.recipe)?.instructions" />
+              <div v-else class="text-mute">No instructions provided.</div>
             </div>
           </div>
         </div>
@@ -192,7 +194,6 @@ onMounted(fetchData)
 }
 
 .instructions-text {
-  white-space: pre-wrap;
   font-size: 0.95rem;
   line-height: 1.6;
 }

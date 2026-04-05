@@ -156,7 +156,8 @@ def import_recipe_ai_task(recipe_id, raw_text):
     - Generalize the ingredient name: Remove preparation methods like "gepresst", "fein gehackt", "geschält", "gewürfelt", etc.
     - Normalize the name: For example, "Knoblauchzehe" should become "Knoblauch" with the unit "Zehe".
     - Avoid specific brands unless essential.
-    - NEVER use 0 as an amount. Even if the recipe says "to taste" or "nach Belieben", estimate a reasonable shopping quantity (e.g., 20g butter, 1 pinch salt) for the `default_portions` and use a standard unit (g, ml, Stück, Zehe, etc.) so it shows up correctly on a shopping list.
+    - NEVER use 0 as an amount. Even if the recipe says "to taste" or "nach Belieben", estimate a reasonable shopping quantity for the `default_portions` and use a standard unit (g, ml, Stück, Zehe, etc.) so it shows up correctly on a shopping list.
+    - Use Markdown for `instructions`: Use numbered lists for steps, bold for emphasis on timings or temperatures, and bullet points for variations if present.
     
     TEXT TO ANALYZE:
     {raw_text}

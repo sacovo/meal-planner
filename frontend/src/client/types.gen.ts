@@ -57,6 +57,14 @@ export type AccountResponse = {
  */
 export type CampSchema = {
     /**
+     * Owner Username
+     */
+    owner_username?: string;
+    /**
+     * Collaborators
+     */
+    collaborators?: Array<string>;
+    /**
      * Id
      */
     id?: string | null;
@@ -76,10 +84,6 @@ export type CampSchema = {
      * End Date
      */
     end_date: string;
-    /**
-     * Owner
-     */
-    owner: number;
     /**
      * Notes
      *
@@ -126,6 +130,16 @@ export type CampUpdateSchema = {
      * Notes
      */
     notes?: string | null;
+};
+
+/**
+ * CollaboratorInviteSchema
+ */
+export type CollaboratorInviteSchema = {
+    /**
+     * Username
+     */
+    username: string;
 };
 
 /**
@@ -796,6 +810,25 @@ export type MealsApiCreateCampResponses = {
 
 export type MealsApiCreateCampResponse = MealsApiCreateCampResponses[keyof MealsApiCreateCampResponses];
 
+export type MealsApiDeleteCampData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}';
+};
+
+export type MealsApiDeleteCampResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type MealsApiGetCampData = {
     body?: never;
     path: {
@@ -837,6 +870,50 @@ export type MealsApiUpdateCampResponses = {
 };
 
 export type MealsApiUpdateCampResponse = MealsApiUpdateCampResponses[keyof MealsApiUpdateCampResponses];
+
+export type MealsApiInviteCollaboratorData = {
+    body: CollaboratorInviteSchema;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/collaborators';
+};
+
+export type MealsApiInviteCollaboratorResponses = {
+    /**
+     * OK
+     */
+    200: CampSchema;
+};
+
+export type MealsApiInviteCollaboratorResponse = MealsApiInviteCollaboratorResponses[keyof MealsApiInviteCollaboratorResponses];
+
+export type MealsApiRemoveCollaboratorData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+        /**
+         * Username
+         */
+        username: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/collaborators/{username}';
+};
+
+export type MealsApiRemoveCollaboratorResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type MealsApiGetCurrentUserStatusData = {
     body?: never;

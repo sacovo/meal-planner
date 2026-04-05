@@ -16,6 +16,7 @@ import {
   type IngredientSchema,
   type DietaryPreferenceSchema
 } from '../client'
+import MarkdownView from '../components/MarkdownView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -274,7 +275,10 @@ onUnmounted(() => {
           </div>
           <div>
             <label>Instructions</label>
-            <p style="white-space: pre-wrap;">{{ recipe.instructions || 'No instructions provided.' }}</p>
+            <div style="margin-top: 0.5rem;">
+              <MarkdownView v-if="recipe.instructions" :content="recipe.instructions" />
+              <p v-else class="text-mute">No instructions provided.</p>
+            </div>
           </div>
         </div>
 
