@@ -4,7 +4,7 @@ from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from modeltranslation.admin import TabbedTranslationAdmin
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
 from content.tasks import (
@@ -34,6 +34,10 @@ class CampAdmin(ModelAdmin):
     list_display = ("name", "start_date", "end_date", "default_people_count", "owner")
     search_fields = ("name",)
 
+class IngredientUnitConversionInline(TabularInline):
+    model = IngredientUnitConversion
+    extra = 1
+
 
 @admin.register(Ingredient)
 class IngredientAdmin(ModelAdmin, TabbedTranslationAdmin):
@@ -43,6 +47,8 @@ class IngredientAdmin(ModelAdmin, TabbedTranslationAdmin):
     actions_list = ["translate_all_ingredients_action"]
     actions = ["translate_ingredient_action"]
     actions_detail = ["translate_ingredient_single_action"]
+
+    inlines = [IngredientUnitConversionInline]
 
     @action(
         description="Translate all ingredients (DE → FR) via AI",
@@ -85,6 +91,11 @@ class IngredientUnitConversionAdmin(ModelAdmin):
     list_filter = ("needs_review",)
     search_fields = ("ingredient__name", "unit_name")
 
+class RecipeIngredientInline(TabularInline):
+    model = RecipeIngredient
+    extra = 1
+
+    readonly_fields = ("ingredient", "unit", "amount")
 
 @admin.register(Recipe)
 class RecipeAdmin(ModelAdmin, TabbedTranslationAdmin):
@@ -93,6 +104,8 @@ class RecipeAdmin(ModelAdmin, TabbedTranslationAdmin):
     actions_list = ["translate_all_recipes_action"]
     actions_detail = ["translate_recipe_single_action"]
     actions = ["translate_action"]
+
+    inlines = [RecipeIngredientInline]
 
     @action(
         description="Translate all recipes (DE → FR) via AI",
