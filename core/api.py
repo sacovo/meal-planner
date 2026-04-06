@@ -1,16 +1,22 @@
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import transaction
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.utils import translation
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 from ninja import Form, NinjaAPI, Schema
 from ninja.security import django_auth
 from ninja.throttling import AnonRateThrottle, AuthRateThrottle
-from sesame.utils import get_user
 
+import content.api
 import meals.api
 
 api = NinjaAPI(
@@ -23,6 +29,7 @@ api = NinjaAPI(
 )
 
 api.add_router("/meals", meals.api.router)
+api.add_router("/content", content.api.router)
 
 
 @api.exception_handler(ValidationError)
@@ -81,11 +88,7 @@ def login_view(request, username: Form[str], password: Form[str]):
 
 @api.post("/auth/logout", auth=django_auth)
 @csrf_exempt
-def logout_view(request, forget: Form[bool] = False):
-    if forget:
-        print("Revoking trusted agent")
-        django_agent_trust.revoke_agent(request)
-    logout(request)
+def logout_view(request):
     return {"success": True}
 
 
@@ -128,9 +131,11 @@ class AccountResponse(Schema):
     otp: bool | None = None
     is_trusted: bool | None = None
     full_name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
 
-@api.post("/auth/account", response=AccountResponse, auth=None)
+@api.get("/auth/account", response=AccountResponse, auth=None)
 def account(request):
     if request.user.is_authenticated:
         return {
@@ -138,8 +143,91 @@ def account(request):
             "is_staff": request.user.is_staff,
             "is_superuser": request.user.is_superuser,
             "full_name": request.user.get_full_name(),
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
         }
     return {"username": None, "is_staff": None, "is_superuser": None}
+
+
+@api.post("/auth/profile", response=AccountResponse)
+def update_profile(request, first_name: Form[str], last_name: Form[str]):
+    user = request.user
+    user.first_name = first_name
+    user.last_name = last_name
+    user.save()
+    return {
+        "username": user.username,
+        "is_staff": user.is_staff,
+        "is_superuser": user.is_superuser,
+        "full_name": user.get_full_name(),
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+
+
+@api.post("/auth/password-reset-request", auth=None)
+@csrf_exempt
+def password_reset_request(request, email: Form[str]):
+    try:
+        user = User.objects.get(email=email)
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        protocol = "https" if request.is_secure() else "http"
+        domain = request.get_host()
+
+        context = {
+            "email": user.email,
+            "domain": domain,
+            "site_name": "Meal Planner",
+            "uid": uid,
+            "user": user,
+            "token": token,
+            "protocol": protocol,
+        }
+
+        subject = render_to_string(
+            "registration/password_reset_subject.txt", context
+        ).strip()
+        email_body = render_to_string("registration/password_reset_email.html", context)
+
+        send_mail(subject, email_body, settings.DEFAULT_FROM_EMAIL, [user.email])
+    except User.DoesNotExist:
+        # We don't want to leak if an email exists or not
+        pass
+
+    return {"success": True}
+
+
+@api.post("/auth/password-reset-confirm", auth=None)
+@csrf_exempt
+def password_reset_confirm(
+    request, uid: Form[str], token: Form[str], new_password: Form[str]
+):
+    try:
+        uid_decoded = force_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(pk=uid_decoded)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        try:
+            validate_password(new_password, user)
+        except ValidationError as e:
+            return api.create_response(
+                request,
+                data={"detail": e.messages},
+                status=400,
+            )
+        user.set_password(new_password)
+        user.save()
+        return {"success": True}
+
+    return api.create_response(
+        request,
+        data={"detail": "Invalid or expired token"},
+        status=400,
+    )
 
 
 @api.get("/set-language/", auth=None)

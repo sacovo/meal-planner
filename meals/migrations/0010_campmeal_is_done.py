@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0009_camp_notes'),
+        ("meals", "0009_camp_notes"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='campmeal',
-            name='is_done',
-            field=models.BooleanField(default=False, help_text='Mark if this meal has been cooked/consumed'),
+            model_name="campmeal",
+            name="is_done",
+            field=models.BooleanField(
+                default=False, help_text="Mark if this meal has been cooked/consumed"
+            ),
         ),
     ]

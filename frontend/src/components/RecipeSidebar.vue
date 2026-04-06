@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { RecipeSchema } from '../client'
+import { ref, computed, watch, onMounted } from 'vue'
+import { mealsApiListRecipes, type RecipeSchema, type DietaryPreferenceSchema } from '../client'
+import TagInput from './TagInput.vue'
+import { useI18n } from '../composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
-  recipes: RecipeSchema[]
+  preferences: DietaryPreferenceSchema[]
+  allTags: string[]
   searchQuery: string
   isCollapsed: boolean
 }>()
@@ -14,10 +19,56 @@ const emit = defineEmits<{
   (e: 'dragstart', event: DragEvent, recipe: RecipeSchema): void
 }>()
 
-const filteredRecipes = computed(() => {
-  if (!props.searchQuery) return props.recipes
-  const q = props.searchQuery.toLowerCase()
-  return props.recipes.filter(r => r.name.toLowerCase().includes(q))
+const recipes = ref<RecipeSchema[]>([])
+const selectedTags = ref<string[]>([])
+const selectedPreferenceId = ref<number | null>(null)
+const currentPage = ref(1)
+const totalCount = ref(0)
+const isLoading = ref(false)
+
+async function fetchRecipes(reset = false) {
+  if (reset) {
+    currentPage.value = 1
+  }
+  isLoading.value = true
+  try {
+    const { data } = await mealsApiListRecipes({
+      query: {
+        page: currentPage.value,
+        q: props.searchQuery || undefined,
+        tags: selectedTags.value.length > 0 ? selectedTags.value.join(',') : undefined,
+        preference_id: selectedPreferenceId.value || undefined
+      }
+    })
+    if (data) {
+      if (reset) recipes.value = data.items
+      else recipes.value.push(...data.items)
+      totalCount.value = data.count
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const hasMore = computed(() => recipes.value.length < totalCount.value)
+
+function loadMore() {
+  if (hasMore.value && !isLoading.value) {
+    currentPage.value++
+    fetchRecipes()
+  }
+}
+
+watch(() => props.searchQuery, () => {
+  fetchRecipes(true)
+})
+
+watch([selectedTags, selectedPreferenceId], () => {
+  fetchRecipes(true)
+})
+
+onMounted(() => {
+  fetchRecipes()
 })
 
 function onDragStart(event: DragEvent, recipe: RecipeSchema) {
@@ -36,21 +87,35 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
     </button>
 
     <div v-show="!isCollapsed" class="flex-col gap-2 content">
-      <h3>Menu Pool</h3>
-      <p class="text-mute subtitle">Drag a recipe into the timetable.</p>
+      <h3>{{ t('planner.menu_pool') }}</h3>
+      <p class="text-mute subtitle">{{ t('recipe.search_placeholder') }}</p>
       
-      <input 
-        type="text" 
-        class="input search-input" 
-        :value="searchQuery" 
-        @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
-        placeholder="Search menus..." 
-      />
+      <div class="flex-col gap-1.5 filters-area">
+        <input 
+          type="text" 
+          class="input search-input" 
+          :value="searchQuery" 
+          @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
+          :placeholder="t('recipe.search_placeholder')" 
+        />
+
+        <TagInput 
+          v-model="selectedTags" 
+          :suggestions="allTags" 
+          :placeholder="t('planner.filter')"
+          class="sidebar-tag-input"
+        />
+
+        <select v-model="selectedPreferenceId" class="input filter-select">
+          <option :value="null">{{ t('planner.all_recipes') }}</option>
+          <option v-for="p in preferences" :key="p.id!" :value="p.id">{{ p.name }}</option>
+        </select>
+      </div>
 
       <div class="recipes-list flex-col gap-2">
         <div 
-          v-for="recipe in filteredRecipes" 
-          :key="recipe.id as string" 
+          v-for="recipe in recipes" 
+          :key="recipe.id!" 
           class="recipe-draggable"
           draggable="true"
           @dragstart="onDragStart($event, recipe)"
@@ -60,17 +125,27 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
             <span class="text-mute portions">{{ recipe.default_portions }}p</span>
           </div>
           <div class="flex gap-1 flex-wrap badges-row" v-if="recipe.preferences && recipe.preferences.length > 0">
-            <span v-for="pref in recipe.preferences" :key="pref.id" class="badge-tiny">
+            <span v-for="pref in recipe.preferences" :key="pref.id!" class="badge-tiny">
               {{ pref.name }}
             </span>
           </div>
+        </div>
+
+        <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center" style="padding: 1rem;">
+          {{ t('recipe.no_results') }}
+        </div>
+
+        <div v-if="hasMore" class="flex justify-center" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+          <button class="btn btn-secondary btn-sm" @click="loadMore" :disabled="isLoading" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+            {{ isLoading ? '...' : t('btn.search') }}
+          </button>
         </div>
       </div>
     </div>
     
     <div v-show="isCollapsed" class="flex-col items-center justify-center h-full collapsed-indicator">
-       <div class="vertical-text">
-         MENU POOL
+      <div class="vertical-text">
+         {{ t('planner.menu_pool') }}
        </div>
     </div>
   </div>
@@ -105,18 +180,45 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
 }
 
-.search-input {
-  font-size: 0.9rem; 
-  padding: 0.4rem; 
-  margin-bottom: 0.5rem;
+.search-input, .filter-select {
+  font-size: 0.85rem; 
+  padding: 0.5rem 0.75rem; 
+  height: 38px;
+}
+
+.filter-select {
+  cursor: pointer;
+}
+
+.filters-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.sidebar-tag-input :deep(.tag-input-box) {
+  padding: 0.25rem 0.5rem;
+  min-height: 38px;
+  border-radius: var(--radius-md);
+}
+
+.sidebar-tag-input :deep(.tag-badge) {
+  padding: 1px 6px;
+  font-size: 0.75rem;
+}
+
+.sidebar-tag-input :deep(.tag-input-field) {
+  font-size: 0.85rem;
 }
 
 .recipes-list {
   overflow-y: auto; 
-  max-height: calc(100vh - 250px); 
+  max-height: calc(100vh - 350px); 
   padding-right: 0.5rem;
 }
 

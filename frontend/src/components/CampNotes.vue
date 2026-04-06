@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from '../composables/useI18n';
 import MarkdownView from './MarkdownView.vue'
+const { t } = useI18n()
 
 defineProps<{
   notes?: string | null
@@ -13,12 +15,12 @@ defineEmits<{
 <template>
   <div class="card camp-notes">
     <div class="flex justify-between items-center header">
-      <h3 class="title">Camp Notes</h3>
-      <button class="btn btn-secondary edit-btn" @click="$emit('edit')">Edit</button>
+      <h3 class="title">{{ t('notes.title') }}</h3>
+      <button class="btn btn-secondary edit-btn" @click="$emit('edit')">{{ t('edit') }}</button>
     </div>
     <div class="text-mute notes-content">
       <MarkdownView v-if="notes" :content="notes" />
-      <span v-else>No special notes or information for this camp yet. Click edit to add.</span>
+      <span v-else>{{ t('notes.empty') }}</span>
     </div>
   </div>
 </template>

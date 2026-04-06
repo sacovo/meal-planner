@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CampPlanner from '../views/CampPlanner.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 // Mocking vue-router
 vi.mock('vue-router', () => ({
@@ -18,7 +18,7 @@ vi.mock('vue-router', () => ({
 vi.mock('../client', () => ({
   mealsApiGetCamp: vi.fn(() => Promise.resolve({ data: { id: '1', name: 'Test Camp', start_date: '2024-01-01', end_date: '2024-01-05', default_people_count: 10 } })),
   mealsApiListCampMeals: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListRecipes: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiListRecipes: vi.fn(() => Promise.resolve({ data: { items: [], count: 0 } })),
   mealsApiListPreferences: vi.fn(() => Promise.resolve({ data: [] })),
   mealsApiListCampGeneralItems: vi.fn(() => Promise.resolve({ data: [] })),
   mealsApiListCampShoppingLists: vi.fn(() => Promise.resolve({ data: [] }))
@@ -65,6 +65,6 @@ describe('CampPlanner.vue', () => {
     // Check if the EditCampModal (stubbed) is present in some way or if the data state changed
     // Since it's stubbed, we can check for its usage or the local state if exposed
     // But better to check for the modal title if not stubbed, or use findComponent
-    expect(wrapper.vm.editingCamp).toBe(true)
+    expect((wrapper.vm as any).editingCamp).toBe(true)
   })
 })

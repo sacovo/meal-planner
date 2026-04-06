@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { 
-  mealsApiListPreferences, 
-  mealsApiGetCamp, 
-  mealsApiListCampMeals, 
-  mealsApiListCampGeneralItems, 
-  mealsApiListRecipes, 
-  mealsApiUpdateCamp, 
-  mealsApiDeleteCamp, 
-  mealsApiListCampShoppingLists, 
-  mealsApiToggleCampMealDone, 
-  mealsApiCreateCampMeal, 
-  mealsApiUpdateCampMeal, 
-  mealsApiDeleteCampMeal, 
-  mealsApiCreateCampGeneralItem, 
-  mealsApiDeleteCampGeneralItem, 
-  mealsApiGenerateShoppingList, 
-  mealsApiDeleteShoppingList, 
-  mealsApiInviteCollaborator, 
+import { useRoute, useRouter } from 'vue-router'
+import {
+  mealsApiListPreferences,
+  mealsApiGetCamp,
+  mealsApiListCampMeals,
+  mealsApiListCampGeneralItems,
+  mealsApiUpdateCamp,
+  mealsApiListCampShoppingLists,
+  mealsApiToggleCampMealDone,
+  mealsApiCreateCampMeal,
+  mealsApiUpdateCampMeal,
+  mealsApiDeleteCampMeal,
+  mealsApiCreateCampGeneralItem,
+  mealsApiDeleteCampGeneralItem,
+  mealsApiGenerateShoppingList,
+  mealsApiDeleteShoppingList,
+  mealsApiInviteCollaborator,
   mealsApiRemoveCollaborator,
+  mealsApiMoveGeneralItemsToShoppingList,
+  mealsApiListTags,
   coreApiAccount,
   type CampSchema,
   type CampMealSchema,
@@ -37,30 +37,37 @@ import PlannerMatrix from '../components/PlannerMatrix.vue'
 import ShoppingListManager from '../components/ShoppingListManager.vue'
 import EditCampModal from '../components/EditCampModal.vue'
 import EditMealModal from '../components/EditMealModal.vue'
-import CampCollaborators from '../components/CampCollaborators.vue'
+import CollaboratorsModal from '../components/CollaboratorsModal.vue'
+import { useI18n } from '../composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
+
+const { t } = useI18n()
 
 const campId = route.params.id as string
 const camp = ref<CampSchema | null>(null)
 const meals = ref<CampMealSchema[]>([])
 const selectedMeals = ref<string[]>([]) // Holds selected meal IDs
 const isSidebarCollapsed = ref(false)
-const recipes = ref<RecipeSchema[]>([])
 const preferences = ref<DietaryPreferenceSchema[]>([])
 const searchRecipeQuery = ref('')
+const allTags = ref<string[]>([])
 
 const shoppingLists = ref<ShoppingListOverviewSchema[]>([])
 const showShoppingLists = ref(false)
 const loadingShoppingLists = ref(false)
 
 const generalItems = ref<GeneralCampItemSchema[]>([])
+const isMovingGeneralItems = ref(false)
+const latestShoppingListId = computed(() => shoppingLists.value[0]?.id as string | undefined)
 
 const currentUser = ref<{ is_logged_in?: boolean, username?: string | null }>({ is_logged_in: false })
 
 const editingCamp = ref(false)
+const showCollaboratorsModal = ref(false)
 const editCampData = ref({ name: '', default_people_count: 0, notes: '' })
+
 
 
 const mealTypesConfig = [
@@ -77,19 +84,19 @@ async function fetchData() {
   if (campData) camp.value = campData
 
   await fetchGeneralItems()
-  
+
   const { data: mealsData } = await mealsApiListCampMeals({ path: { camp_id: campId } })
   if (mealsData) {
     meals.value = mealsData
     // By default, select all for shopping
-    selectedMeals.value = mealsData.map(m => m.id)
+    selectedMeals.value = mealsData.map(m => m.id!).filter(id => !!id)
   }
-
-  const { data: recipesData } = await mealsApiListRecipes()
-  if (recipesData) recipes.value = recipesData
 
   const { data: prefData } = await mealsApiListPreferences()
   if (prefData) preferences.value = prefData
+
+  const { data: tagsData } = await mealsApiListTags()
+  if (tagsData) allTags.value = tagsData
 
   // Fetch current user
   try {
@@ -103,6 +110,9 @@ async function fetchData() {
   } catch (e) {
     console.error("Auth check failed", e)
   }
+
+  // Pre-fetch shopping lists so they are available for general items move
+  await fetchShoppingLists()
 }
 
 // Compute Days Array bounds between Start and End points
@@ -139,8 +149,8 @@ const mealsGrid = computed(() => {
 
 const recipeNames = computed(() => {
   const map: Record<string, string> = {}
-  recipes.value.forEach(r => {
-    if (r.id) map[r.id] = r.name
+  meals.value.forEach(m => {
+    if (m.recipe) map[m.recipe] = m.recipe_name || ''
   })
   return map
 })
@@ -157,7 +167,7 @@ function startDrag(event: DragEvent, recipe: RecipeSchema) {
 async function onDrop(event: DragEvent, date: string, mealType: string) {
   const recipeId = event.dataTransfer?.getData('recipe_id')
   if (!recipeId) return
-  
+
   // Call API
   const { data } = await mealsApiCreateCampMeal({
     path: { camp_id: campId },
@@ -176,7 +186,7 @@ async function onDrop(event: DragEvent, date: string, mealType: string) {
 }
 
 async function removeMeal(meal: CampMealSchema) {
-  if(!confirm("Remove meal from slot?")) return
+  if (!confirm(t('planner.remove_meal_from_slot'))) return
   await mealsApiDeleteCampMeal({
     path: { camp_id: campId, meal_id: meal.id as string }
   })
@@ -212,12 +222,12 @@ async function generateShoppingList() {
     alert('Please select at least one meal.')
     return
   }
-  
+
   const { data } = await mealsApiGenerateShoppingList({
     path: { camp_id: campId },
     body: { meal_ids: selectedMeals.value }
   })
-  
+
   if (data) {
     router.push(`/share/${data.shared_token}`)
   }
@@ -267,6 +277,31 @@ async function fetchGeneralItems() {
   if (data) generalItems.value = data
 }
 
+async function handleMoveGeneralItems() {
+  if (!latestShoppingListId.value) {
+    alert("Please create a shopping list first.")
+    return
+  }
+  if (!confirm("Move all general items to the most recent shopping list? They will be removed from this list.")) return
+
+  isMovingGeneralItems.value = true
+  try {
+    await mealsApiMoveGeneralItemsToShoppingList({
+      path: {
+        camp_id: campId,
+        list_id: latestShoppingListId.value
+      }
+    })
+    await fetchGeneralItems()
+    await fetchShoppingLists()
+  } catch (e) {
+    console.error(e)
+    alert("Failed to move items")
+  } finally {
+    isMovingGeneralItems.value = false
+  }
+}
+
 async function saveEditCamp(data: { name: string, default_people_count: number, notes: string }) {
   try {
     const { data: updatedCamp } = await mealsApiUpdateCamp({
@@ -308,12 +343,12 @@ async function inviteCollaborator(username: string) {
 async function removeCollaborator(username: string) {
   const confirmMsg = username === currentUser.value.username ? "Are you sure you want to leave this camp?" : `Remove ${username} from camp?`
   if (!confirm(confirmMsg)) return
-  
+
   try {
     await mealsApiRemoveCollaborator({
       path: { camp_id: campId, username }
     })
-    if (camp.value) {
+    if (camp.value && camp.value.collaborators) {
       camp.value.collaborators = camp.value.collaborators.filter((u: string) => u !== username)
     }
     if (username === currentUser.value.username) {
@@ -352,18 +387,18 @@ function exportMatrixPDF() {
   const opt = {
     margin: 5,
     filename: `CampPlan_${camp.value?.name}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2, 
-      useCORS: true, 
-      scrollX: 0, 
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollX: 0,
       scrollY: 0,
       windowWidth: element.scrollWidth + 50,
       width: element.scrollWidth
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-  }
-  
+  } as const
+
   html2pdf().set(opt).from(element).save().then(() => {
     // Restore original styles
     element.style.overflowX = originalOverflow
@@ -375,9 +410,10 @@ function switchToDayDetail(day: string) {
   router.push(`/camps/${campId}/day/${day}`)
 }
 
-function getMealTypeLabel(val: string) {
-  return mealTypesConfig.find(mt => mt.val === val)?.label || val
-}
+// Unused but kept for reference or removed if strictly needed
+// function getMealTypeLabel(val: string) {
+//   return mealTypesConfig.find(mt => mt.val === val)?.label || val
+// }
 
 function getMealsForDay(day: string) {
   if (!mealsGrid.value[day]) return []
@@ -387,21 +423,21 @@ function getMealsForDay(day: string) {
 function isDaySelected(day: string) {
   const dayMeals = getMealsForDay(day)
   if (dayMeals.length === 0) return false
-  return dayMeals.every(m => selectedMeals.value.includes(m.id))
+  return dayMeals.every(m => selectedMeals.value.includes(m.id!))
 }
 
-function isDayPartial(day: string) {
-  const dayMeals = getMealsForDay(day)
-  if (dayMeals.length === 0) return false
-  const selectedCount = dayMeals.filter(m => selectedMeals.value.includes(m.id)).length
-  return selectedCount > 0 && selectedCount < dayMeals.length
-}
+// function isDayPartial(day: string) {
+//   const dayMeals = getMealsForDay(day)
+//   if (dayMeals.length === 0) return false
+//   const selectedCount = dayMeals.filter(m => selectedMeals.value.includes(m.id!)).length
+//   return selectedCount > 0 && selectedCount < dayMeals.length
+// }
 
 function toggleDay(day: string) {
   const dayMeals = getMealsForDay(day)
-  const dayMealIds = dayMeals.map(m => m.id)
+  const dayMealIds = dayMeals.map(m => m.id!).filter(id => !!id)
   const currentlySelected = isDaySelected(day)
-  
+
   if (currentlySelected) {
     selectedMeals.value = selectedMeals.value.filter(id => !dayMealIds.includes(id))
   } else {
@@ -414,7 +450,7 @@ watch(() => camp.value, (newCamp) => {
   if (newCamp) {
     editCampData.value = {
       name: newCamp.name,
-      default_people_count: newCamp.default_people_count,
+      default_people_count: newCamp.default_people_count || 0,
       notes: newCamp.notes || ''
     }
   }
@@ -427,85 +463,59 @@ onMounted(fetchData)
   <div v-if="camp" class="flex-col gap-4">
     <div class="flex items-center justify-between" style="margin-bottom: 1.5rem;">
       <div class="flex items-center gap-4">
-        <button class="btn btn-secondary" @click="router.push('/')">&larr; Back</button>
-        <h2 style="margin: 0;">Plan: {{ camp.name }}</h2>
-        <button class="btn btn-secondary" v-if="camp" @click="editingCamp = true" style="padding: 0.25rem 0.6rem; border: none; box-shadow: none; font-size: 0.9rem;">⚙️ Edit</button>
+        <button class="btn btn-secondary" @click="router.push('/')">&larr; {{ t('back') }}</button>
+        <h2 style="margin: 0;">{{ t('plan') }} {{ camp.name }}</h2>
+        <button class="btn btn-secondary" v-if="camp" @click="editingCamp = true"
+          style="padding: 0.25rem 0.6rem; border: none; box-shadow: none; font-size: 0.9rem;">⚙️ {{ t('edit')
+          }}</button>
       </div>
-      
+
       <div class="flex gap-2">
-        <button class="btn btn-secondary no-print" @click="router.push(`/camps/${campId}/inventory`)">📦 Inventory</button>
-        <button class="btn btn-secondary no-print" @click="exportMatrixPDF">📋 Export</button>
+        <button class="btn btn-secondary no-print" @click="showCollaboratorsModal = true">👥 {{ t('collaborators.title')
+          }}</button>
+        <button class="btn btn-secondary no-print" @click="router.push(`/camps/${campId}/inventory`)">📦 {{
+          t('inventory.title') }}</button>
+        <button class="btn btn-secondary no-print" @click="exportMatrixPDF">📋 {{ t('export') }}</button>
       </div>
     </div>
 
     <!-- Planner Matrix Area -->
-    <div class="grid" :style="{ gridTemplateColumns: isSidebarCollapsed ? '60px 1fr' : '300px 1fr' }" style="gap: 1.5rem; transition: grid-template-columns 0.3s ease;">
-      
+    <div class="grid" :style="{ gridTemplateColumns: isSidebarCollapsed ? '60px 1fr' : '300px 1fr' }"
+      style="gap: 1.5rem; transition: grid-template-columns 0.3s ease;">
+
       <!-- Recipes Sidebar -->
-      <RecipeSidebar 
-        :recipes="recipes" 
-        v-model:searchQuery="searchRecipeQuery" 
-        v-model:isCollapsed="isSidebarCollapsed"
-        @dragstart="startDrag"
-      />
+      <RecipeSidebar :preferences="preferences" :all-tags="allTags" v-model:searchQuery="searchRecipeQuery"
+        v-model:isCollapsed="isSidebarCollapsed" @dragstart="startDrag" />
 
       <!-- Matrix Canvas -->
-      <PlannerMatrix 
-        :camp="camp" 
-        :camp-days="campDays" 
-        :meal-types-config="mealTypesConfig" 
-        :meals-grid="mealsGrid" 
-        v-model:selected-meals="selectedMeals"
-        :recipe-names="recipeNames"
-        @drop="onDrop"
-        @edit-meal="openEditMeal"
-        @toggle-done="toggleMealDone"
-        @remove-meal="removeMeal"
-        @switch-day="switchToDayDetail"
-        @toggle-day="toggleDay"
-      />
+      <PlannerMatrix :camp="camp" :camp-days="campDays" :meal-types-config="mealTypesConfig" :meals-grid="mealsGrid"
+        v-model:selected-meals="selectedMeals" :recipe-names="recipeNames" @drop="onDrop" @edit-meal="openEditMeal"
+        @toggle-done="toggleMealDone" @remove-meal="removeMeal" @switch-day="switchToDayDetail"
+        @toggle-day="toggleDay" />
     </div>
 
-    <ShoppingListManager 
-      :selected-meals-count="selectedMeals.length"
-      v-model:showShoppingLists="showShoppingLists"
-      :shopping-lists="shoppingLists"
-      :loading="loadingShoppingLists"
-      @generate="generateShoppingList"
-      @delete="deleteShoppingList"
-      @open="handleOpenShoppingList"
-    />
+    <ShoppingListManager :selected-meals-count="selectedMeals.length" v-model:showShoppingLists="showShoppingLists"
+      :shopping-lists="shoppingLists" :loading="loadingShoppingLists" @generate="generateShoppingList"
+      @delete="deleteShoppingList" @open="handleOpenShoppingList" />
 
     <div class="grid bottom-grid">
       <div class="flex-col gap-4">
         <CampNotes :notes="camp?.notes" @edit="editingCamp = true" />
-        <CampCollaborators 
-          v-if="camp"
-          :collaborators="camp.collaborators" 
-          :owner-username="camp.owner_username"
-          :current-user-username="currentUser.username || ''"
-          @invite="inviteCollaborator"
-          @remove="removeCollaborator"
-        />
       </div>
-      <GeneralItems :items="generalItems" @add="addGeneralItem" @delete="deleteGeneralItem" />
+      <GeneralItems :items="generalItems" :can-move="!!latestShoppingListId" :is-moving="isMovingGeneralItems"
+        @add="addGeneralItem" @delete="deleteGeneralItem" @move="handleMoveGeneralItems" />
     </div>
 
     <!-- Modals -->
-    <EditCampModal 
-      v-model:show="editingCamp" 
-      :camp-data="editCampData" 
-      @save="saveEditCamp" 
-    />
+    <EditCampModal v-model:show="editingCamp" :camp-data="editCampData" @save="saveEditCamp" />
 
-    <EditMealModal 
-      :show="!!editingMeal" 
-      @update:show="editingMeal = $event ? editingMeal : null"
-      :meal="editingMeal" 
-      :preferences="preferences" 
-      :recipe-name="editingMeal ? recipeNames[editingMeal.recipe as string] : ''"
-      @save="saveEditMeal" 
-    />
+    <EditMealModal :show="!!editingMeal" @update:show="editingMeal = $event ? editingMeal : null" :meal="editingMeal"
+      :preferences="preferences" :recipe-name="editingMeal ? recipeNames[editingMeal.recipe as string] : ''"
+      @save="saveEditMeal" />
+
+    <CollaboratorsModal v-if="camp" v-model:show="showCollaboratorsModal" :collaborators="camp.collaborators || []"
+      :owner-username="camp.owner_username || ''" :current-user-username="currentUser.username || ''"
+      @invite="inviteCollaborator" @remove="removeCollaborator" />
 
   </div>
   <div v-else>
@@ -515,13 +525,13 @@ onMounted(fetchData)
 
 <style scoped>
 .sidebar {
-  background: var(--color-bg-mute); 
+  background: var(--color-bg-mute);
   border: 1px solid var(--color-border);
 }
 
 .bottom-grid {
-  grid-template-columns: 1fr 1fr; 
-  gap: 1rem; 
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
   margin-top: 1rem;
 }
 
@@ -544,10 +554,10 @@ onMounted(fetchData)
 }
 
 .badge-tiny {
-  font-size: 0.65rem; 
-  background: var(--color-primary-light); 
-  color: var(--color-primary-hover); 
-  padding: 1px 4px; 
+  font-size: 0.65rem;
+  background: var(--color-primary-light);
+  color: var(--color-primary-hover);
+  padding: 1px 4px;
   border-radius: 3px;
 }
 
@@ -560,7 +570,7 @@ onMounted(fetchData)
 }
 
 .day-header:hover {
-  text-decoration: underline; 
+  text-decoration: underline;
 }
 
 .meal-done {

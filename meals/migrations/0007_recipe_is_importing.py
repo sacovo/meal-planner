@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0006_shoppinglistitem_source_meals_text'),
+        ("meals", "0006_shoppinglistitem_source_meals_text"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='recipe',
-            name='is_importing',
-            field=models.BooleanField(default=False, help_text='True if AI is currently parsing this recipe in the background'),
+            model_name="recipe",
+            name="is_importing",
+            field=models.BooleanField(
+                default=False,
+                help_text="True if AI is currently parsing this recipe in the background",
+            ),
         ),
     ]

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import PlannerMatrix from '../components/PlannerMatrix.vue'
 
 describe('PlannerMatrix.vue', () => {

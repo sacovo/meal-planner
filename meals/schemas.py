@@ -1,40 +1,33 @@
-from datetime import datetime
-from ninja import ModelSchema, Schema
-from typing import List, Optional
 from datetime import date, datetime
+from typing import List, Optional
 from uuid import UUID
 
-from .models import (
-    Camp,
-    Ingredient,
-    IngredientUnitConversion,
-    Recipe,
-    RecipeIngredient,
-    CampMeal,
-    GeneralCampItem,
-    ShoppingList,
-    ShoppingListItem,
-    Inventory,
-    DietaryPreference,
-)
+from ninja import ModelSchema, Schema
+
+from .models import (Camp, CampMeal, DietaryPreference, GeneralCampItem,
+                     Ingredient, Recipe, RecipeIngredient, ShoppingListItem)
+
 
 class DietaryPreferenceSchema(ModelSchema):
     class Meta:
         model = DietaryPreference
         fields = ["id", "name"]
 
+
 class IngredientSchema(ModelSchema):
     class Meta:
         model = Ingredient
         fields = ["id", "name", "category", "base_unit"]
+
 
 class IngredientCreateSchema(ModelSchema):
     class Meta:
         model = Ingredient
         fields = ["name", "category", "base_unit"]
 
+
 class CampSchema(ModelSchema):
-    owner_username: str = None
+    owner_username: Optional[str] = None
     collaborators: List[str] = []
 
     @staticmethod
@@ -47,27 +40,58 @@ class CampSchema(ModelSchema):
 
     class Meta:
         model = Camp
-        fields = ["id", "name", "default_people_count", "start_date", "end_date", "notes"]
+        fields = [
+            "id",
+            "name",
+            "default_people_count",
+            "start_date",
+            "end_date",
+            "notes",
+        ]
 
-class CampCreateSchema(Schema):
-    name: str
-    default_people_count: int
-    start_date: date
-    end_date: date
+
+class CampCreateSchema(ModelSchema):
+    class Meta:
+        model = Camp
+        fields = ["name", "default_people_count", "start_date", "end_date"]
+
 
 class CampUpdateSchema(Schema):
     name: Optional[str] = None
     default_people_count: Optional[int] = None
     notes: Optional[str] = None
 
+
 class CollaboratorInviteSchema(Schema):
     username: str
 
+
 class CampMealSchema(ModelSchema):
     serves_preference: DietaryPreferenceSchema | None = None
+    recipe_name: str = ""
+    recipe_default_portions: int = 4
+
+    @staticmethod
+    def resolve_recipe_name(obj):
+        return obj.recipe.name
+
+    @staticmethod
+    def resolve_recipe_default_portions(obj):
+        return obj.recipe.default_portions
+
     class Meta:
         model = CampMeal
-        fields = ["id", "camp", "recipe", "meal_type", "date", "override_people_count", "leftovers_noted", "is_done"]
+        fields = [
+            "id",
+            "camp",
+            "recipe",
+            "meal_type",
+            "date",
+            "override_people_count",
+            "leftovers_noted",
+            "is_done",
+        ]
+
 
 class CampMealCreateSchema(Schema):
     recipe_id: UUID
@@ -76,42 +100,71 @@ class CampMealCreateSchema(Schema):
     override_people_count: int = None
     serves_preference_id: int = None
 
+
 class CampMealUpdateSchema(Schema):
     override_people_count: int | None = None
     serves_preference_id: int | None = None
 
 
-class CampCreateSchema(ModelSchema):
-    class Meta:
-        model = Camp
-        fields = ["name", "default_people_count", "start_date", "end_date"]
-
 class RecipeSchema(ModelSchema):
     preferences: List[DietaryPreferenceSchema] = []
+    tags: List[str] = []
+    owner_username: Optional[str] = None
+    collaborators: List[str] = []
+
+    @staticmethod
+    def resolve_owner_username(obj):
+        return obj.owner.username if obj.owner else None
+
+    @staticmethod
+    def resolve_collaborators(obj):
+        return [c.username for c in obj.collaborators.all()]
+
     class Meta:
         model = Recipe
-        fields = ["id", "name", "description", "instructions", "owner", "tags", "default_portions"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "instructions",
+            "tags",
+            "default_portions",
+            "is_importing",
+        ]
+
 
 class RecipeCreateSchema(ModelSchema):
     preference_ids: List[int] = []
+    tags: List[str] = []
+
     class Meta:
         model = Recipe
         fields = ["name", "description", "instructions", "tags", "default_portions"]
 
+
+class RecipePaginatedSchema(Schema):
+    items: List[RecipeSchema]
+    count: int
+
+
 class RecipeIngredientSchema(ModelSchema):
     ingredient: IngredientSchema
+
     class Meta:
         model = RecipeIngredient
         fields = ["id", "ingredient", "amount", "unit"]
+
 
 class RecipeIngredientCreateOrMapSchema(Schema):
     ingredient_name: str
     amount: float
     unit: str
 
+
 class RecipeIngredientUpdateSchema(Schema):
     amount: float
     unit: str
+
 
 class RecipeUpdateSchema(Schema):
     name: str = None
@@ -119,29 +172,46 @@ class RecipeUpdateSchema(Schema):
     instructions: str = None
     default_portions: int = None
     preference_ids: List[int] = None
+    tags: List[str] = None
+
 
 class RecipeImportRequestSchema(Schema):
     raw_text: str
+
 
 class GeneralCampItemSchema(ModelSchema):
     class Meta:
         model = GeneralCampItem
         fields = ["id", "camp", "name", "amount", "category"]
 
+
 class GeneralCampItemCreateSchema(ModelSchema):
     class Meta:
         model = GeneralCampItem
         fields = ["name", "amount", "category"]
 
+
 class ShoppingListItemSchema(ModelSchema):
     ingredient: IngredientSchema | None = None
     source_meals_text: List[str] = []
+
     class Meta:
         model = ShoppingListItem
-        fields = ["id", "shopping_list", "ingredient", "custom_name", "amount", "unit", "category", "is_checked"]
+        fields = [
+            "id",
+            "shopping_list",
+            "ingredient",
+            "custom_name",
+            "amount",
+            "unit",
+            "category",
+            "is_checked",
+        ]
+
 
 class ShoppingListGenerateRequestSchema(Schema):
     meal_ids: List[UUID]
+
 
 class ShoppingListOverviewSchema(Schema):
     id: UUID
@@ -150,11 +220,13 @@ class ShoppingListOverviewSchema(Schema):
     created_at: datetime
     included_meals: List[str]
 
+
 class ShoppingListSchema(Schema):
     id: UUID
     camp_id: UUID
     shared_token: UUID
     items: List[ShoppingListItemSchema]
+
 
 class InventoryStatusSchema(Schema):
     ingredient_id: UUID
@@ -164,6 +236,7 @@ class InventoryStatusSchema(Schema):
     quantity_bought: float
     quantity_required: float
     balance: float
+
 
 class ShoppingListManualItemSchema(Schema):
     ingredient_id: UUID

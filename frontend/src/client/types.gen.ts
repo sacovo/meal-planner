@@ -50,6 +50,14 @@ export type AccountResponse = {
      * Full Name
      */
     full_name?: string | null;
+    /**
+     * First Name
+     */
+    first_name?: string | null;
+    /**
+     * Last Name
+     */
+    last_name?: string | null;
 };
 
 /**
@@ -59,7 +67,7 @@ export type CampSchema = {
     /**
      * Owner Username
      */
-    owner_username?: string;
+    owner_username?: string | null;
     /**
      * Collaborators
      */
@@ -143,10 +151,32 @@ export type CollaboratorInviteSchema = {
 };
 
 /**
+ * CurrentUserStatusSchema
+ */
+export type CurrentUserStatusSchema = {
+    /**
+     * Is Logged In
+     */
+    is_logged_in: boolean;
+    /**
+     * Username
+     */
+    username: string | null;
+};
+
+/**
  * CampMealSchema
  */
 export type CampMealSchema = {
     serves_preference?: DietaryPreferenceSchema | null;
+    /**
+     * Recipe Name
+     */
+    recipe_name?: string;
+    /**
+     * Recipe Default Portions
+     */
+    recipe_default_portions?: number;
     /**
      * Id
      */
@@ -280,6 +310,20 @@ export type IngredientCreateSchema = {
 };
 
 /**
+ * RecipePaginatedSchema
+ */
+export type RecipePaginatedSchema = {
+    /**
+     * Items
+     */
+    items: Array<RecipeSchema>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * RecipeSchema
  */
 export type RecipeSchema = {
@@ -287,6 +331,18 @@ export type RecipeSchema = {
      * Preferences
      */
     preferences?: Array<DietaryPreferenceSchema>;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
+    /**
+     * Owner Username
+     */
+    owner_username?: string | null;
+    /**
+     * Collaborators
+     */
+    collaborators?: Array<string>;
     /**
      * Id
      */
@@ -304,23 +360,17 @@ export type RecipeSchema = {
      */
     instructions?: string | null;
     /**
-     * Owner
-     */
-    owner?: number | null;
-    /**
-     * Tags
-     *
-     * List of dietary tags like Vegan, Gluten-Free
-     */
-    tags?: {
-        [key: string]: unknown;
-    } | null;
-    /**
      * Default Portions
      *
      * How many people this recipe serves as written
      */
     default_portions?: number;
+    /**
+     * Is Importing
+     *
+     * True if AI is currently parsing this recipe in the background
+     */
+    is_importing?: boolean;
 };
 
 /**
@@ -331,6 +381,10 @@ export type RecipeCreateSchema = {
      * Preference Ids
      */
     preference_ids?: Array<number>;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
     /**
      * Name
      */
@@ -343,14 +397,6 @@ export type RecipeCreateSchema = {
      * Instructions
      */
     instructions?: string | null;
-    /**
-     * Tags
-     *
-     * List of dietary tags like Vegan, Gluten-Free
-     */
-    tags?: {
-        [key: string]: unknown;
-    } | null;
     /**
      * Default Portions
      *
@@ -393,6 +439,10 @@ export type RecipeUpdateSchema = {
      * Preference Ids
      */
     preference_ids?: Array<number>;
+    /**
+     * Tags
+     */
+    tags?: Array<string>;
 };
 
 /**
@@ -683,15 +733,7 @@ export type CoreApiLoginViewResponses = {
 export type CoreApiLoginViewResponse = CoreApiLoginViewResponses[keyof CoreApiLoginViewResponses];
 
 export type CoreApiLogoutViewData = {
-    /**
-     * FormParams
-     */
-    body: {
-        /**
-         * Forget
-         */
-        forget?: boolean;
-    };
+    body?: never;
     path?: never;
     query?: never;
     url: '/api/auth/logout';
@@ -756,6 +798,86 @@ export type CoreApiAccountResponses = {
 };
 
 export type CoreApiAccountResponse = CoreApiAccountResponses[keyof CoreApiAccountResponses];
+
+export type CoreApiUpdateProfileData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * First Name
+         */
+        first_name: string;
+        /**
+         * Last Name
+         */
+        last_name: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/profile';
+};
+
+export type CoreApiUpdateProfileResponses = {
+    /**
+     * OK
+     */
+    200: AccountResponse;
+};
+
+export type CoreApiUpdateProfileResponse = CoreApiUpdateProfileResponses[keyof CoreApiUpdateProfileResponses];
+
+export type CoreApiPasswordResetRequestData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Email
+         */
+        email: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/password-reset-request';
+};
+
+export type CoreApiPasswordResetRequestResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type CoreApiPasswordResetConfirmData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Uid
+         */
+        uid: string;
+        /**
+         * Token
+         */
+        token: string;
+        /**
+         * New Password
+         */
+        new_password: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/password-reset-confirm';
+};
+
+export type CoreApiPasswordResetConfirmResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type CoreApiSetLanguageData = {
     body?: never;
@@ -926,8 +1048,10 @@ export type MealsApiGetCurrentUserStatusResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: CurrentUserStatusSchema;
 };
+
+export type MealsApiGetCurrentUserStatusResponse = MealsApiGetCurrentUserStatusResponses[keyof MealsApiGetCurrentUserStatusResponses];
 
 export type MealsApiToggleCampMealDoneData = {
     body?: never;
@@ -976,6 +1100,25 @@ export type MealsApiGetInventoryStatusResponses = {
 };
 
 export type MealsApiGetInventoryStatusResponse = MealsApiGetInventoryStatusResponses[keyof MealsApiGetInventoryStatusResponses];
+
+export type MealsApiExportInventoryExcelData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/inventory-status/export';
+};
+
+export type MealsApiExportInventoryExcelResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type MealsApiListIngredientsData = {
     body?: never;
@@ -1034,25 +1177,53 @@ export type MealsApiListUnitsResponses = {
 
 export type MealsApiListUnitsResponse = MealsApiListUnitsResponses[keyof MealsApiListUnitsResponses];
 
+export type MealsApiListTagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/meals/tags';
+};
+
+export type MealsApiListTagsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type MealsApiListTagsResponse = MealsApiListTagsResponses[keyof MealsApiListTagsResponses];
+
 export type MealsApiListRecipesData = {
     body?: never;
     path?: never;
     query?: {
         /**
+         * Page
+         */
+        page?: number;
+        /**
          * Q
          */
         q?: string | null;
+        /**
+         * Tags
+         */
+        tags?: string | null;
+        /**
+         * Preference Id
+         */
+        preference_id?: number | null;
     };
     url: '/api/meals/recipes';
 };
 
 export type MealsApiListRecipesResponses = {
     /**
-     * Response
-     *
      * OK
      */
-    200: Array<RecipeSchema>;
+    200: RecipePaginatedSchema;
 };
 
 export type MealsApiListRecipesResponse = MealsApiListRecipesResponses[keyof MealsApiListRecipesResponses];
@@ -1222,6 +1393,50 @@ export type MealsApiUpdateRecipeIngredientResponses = {
 };
 
 export type MealsApiUpdateRecipeIngredientResponse = MealsApiUpdateRecipeIngredientResponses[keyof MealsApiUpdateRecipeIngredientResponses];
+
+export type MealsApiInviteRecipeCollaboratorData = {
+    body: CollaboratorInviteSchema;
+    path: {
+        /**
+         * Recipe Id
+         */
+        recipe_id: string;
+    };
+    query?: never;
+    url: '/api/meals/recipes/{recipe_id}/collaborators';
+};
+
+export type MealsApiInviteRecipeCollaboratorResponses = {
+    /**
+     * OK
+     */
+    200: RecipeSchema;
+};
+
+export type MealsApiInviteRecipeCollaboratorResponse = MealsApiInviteRecipeCollaboratorResponses[keyof MealsApiInviteRecipeCollaboratorResponses];
+
+export type MealsApiRemoveRecipeCollaboratorData = {
+    body?: never;
+    path: {
+        /**
+         * Recipe Id
+         */
+        recipe_id: string;
+        /**
+         * Username
+         */
+        username: string;
+    };
+    query?: never;
+    url: '/api/meals/recipes/{recipe_id}/collaborators/{username}';
+};
+
+export type MealsApiRemoveRecipeCollaboratorResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type MealsApiListPreferencesData = {
     body?: never;
@@ -1442,6 +1657,31 @@ export type MealsApiGenerateShoppingListResponses = {
 
 export type MealsApiGenerateShoppingListResponse = MealsApiGenerateShoppingListResponses[keyof MealsApiGenerateShoppingListResponses];
 
+export type MealsApiMoveGeneralItemsToShoppingListData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+        /**
+         * List Id
+         */
+        list_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/shopping-lists/{list_id}/move-general-items';
+};
+
+export type MealsApiMoveGeneralItemsToShoppingListResponses = {
+    /**
+     * OK
+     */
+    200: ShoppingListSchema;
+};
+
+export type MealsApiMoveGeneralItemsToShoppingListResponse = MealsApiMoveGeneralItemsToShoppingListResponses[keyof MealsApiMoveGeneralItemsToShoppingListResponses];
+
 export type MealsApiDeleteShoppingListData = {
     body?: never;
     path: {
@@ -1481,6 +1721,25 @@ export type MealsApiGetShoppingListResponses = {
 };
 
 export type MealsApiGetShoppingListResponse = MealsApiGetShoppingListResponses[keyof MealsApiGetShoppingListResponses];
+
+export type MealsApiExportShoppingListData = {
+    body?: never;
+    path: {
+        /**
+         * List Id
+         */
+        list_id: string;
+    };
+    query?: never;
+    url: '/api/meals/shopping-lists/{list_id}/export';
+};
+
+export type MealsApiExportShoppingListResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type MealsApiListCampShoppingListsData = {
     body?: never;
@@ -1526,6 +1785,25 @@ export type MealsApiGetSharedShoppingListResponses = {
 
 export type MealsApiGetSharedShoppingListResponse = MealsApiGetSharedShoppingListResponses[keyof MealsApiGetSharedShoppingListResponses];
 
+export type MealsApiExportSharedShoppingListData = {
+    body?: never;
+    path: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/api/meals/shared/shopping-lists/{token}/export';
+};
+
+export type MealsApiExportSharedShoppingListResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type MealsApiToggleSharedShoppingItemData = {
     body?: never;
     path: {
@@ -1550,3 +1828,22 @@ export type MealsApiToggleSharedShoppingItemResponses = {
 };
 
 export type MealsApiToggleSharedShoppingItemResponse = MealsApiToggleSharedShoppingItemResponses[keyof MealsApiToggleSharedShoppingItemResponses];
+
+export type ContentApiGetTextsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string;
+    };
+    url: '/api/content/texts/';
+};
+
+export type ContentApiGetTextsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};

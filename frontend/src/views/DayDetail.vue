@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
+import {
   mealsApiGetCamp,
   mealsApiListCampMeals,
   mealsApiListRecipes,
@@ -49,7 +49,7 @@ async function fetchData() {
     }
 
     const { data: allRecipes } = await mealsApiListRecipes()
-    if (allRecipes) recipes.value = allRecipes
+    if (allRecipes) recipes.value = allRecipes.items
 
     // Fetch ingredients for these meals
     for (const meal of meals.value) {
@@ -86,18 +86,21 @@ function getScaledAmount(ri: RecipeIngredientSchema, meal: CampMealSchema) {
   const recipe = getRecipe(meal.recipe)
   if (!recipe || !recipe.default_portions) return ri.amount
   const people = meal.override_people_count !== null ? meal.override_people_count : (camp.value?.default_people_count || 4)
+  if (!people) return ri.amount
   return (ri.amount * people) / recipe.default_portions
 }
 
 function exportPDF() {
   const element = document.getElementById('printable-content')
+  if (!element) return
+
   const opt = {
     margin: 10,
     filename: `DayPlan_${dateStr}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
+    image: { type: 'jpeg' as const, quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }
+  } as const
   html2pdf().set(opt).from(element).save()
 }
 
@@ -109,7 +112,10 @@ onMounted(fetchData)
     <div class="flex justify-between items-center no-print" style="margin-bottom: 2rem;">
       <div class="flex items-center gap-4">
         <button class="btn btn-secondary" @click="router.push(`/camps/${campId}`)">&larr; Back to Plan</button>
-        <h2 v-if="camp">{{ camp.name }} - {{ new Date(dateStr).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) }}</h2>
+        <h2 v-if="camp">{{ camp.name }} - {{ new Date(dateStr).toLocaleDateString(undefined, {
+          weekday: 'long', day:
+            'numeric', month: 'long'
+        }) }}</h2>
       </div>
       <div class="flex gap-2">
         <button class="btn btn-primary" @click="exportPDF">🖨 Export PDF / Print</button>
@@ -123,28 +129,35 @@ onMounted(fetchData)
     <div v-else id="printable-content" class="flex-col gap-8 print-container">
       <div class="print-header only-print">
         <h1>{{ camp?.name }}</h1>
-        <h2>{{ new Date(dateStr).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</h2>
+        <h2>{{ new Date(dateStr).toLocaleDateString(undefined, {
+          weekday: 'long', day: 'numeric', month: 'long', year:
+            'numeric'
+        }) }}</h2>
       </div>
 
       <div v-if="meals.length === 0" class="card text-center py-10 text-mute">
         No meals scheduled for this day.
       </div>
 
-      <div v-for="meal in meals" :key="meal.id as string" class="meal-section card" :class="{ 'meal-done': meal.is_done }">
+      <div v-for="meal in meals" :key="meal.id as string" class="meal-section card"
+        :class="{ 'meal-done': meal.is_done }">
         <div class="flex justify-between items-end border-b pb-4 mb-4">
           <div>
             <div class="flex items-center gap-2 no-print" style="margin-bottom: 0.5rem;">
-               <div class="badge">{{ mealTypesConfig.find(m => m.val === meal.meal_type)?.label }}</div>
-               <div v-if="meal.is_done" class="badge" style="background: var(--color-success); color: white;">✓ Cooked</div>
+              <div class="badge">{{mealTypesConfig.find(m => m.val === meal.meal_type)?.label}}</div>
+              <div v-if="meal.is_done" class="badge" style="background: var(--color-success); color: white;">✓ Cooked
+              </div>
             </div>
-            <h1 class="meal-title" style="margin: 0; color: var(--color-primary);">{{ getRecipe(meal.recipe)?.name }}</h1>
+            <h1 class="meal-title" style="margin: 0; color: var(--color-primary);">{{ getRecipe(meal.recipe)?.name }}
+            </h1>
           </div>
           <div class="flex flex-col items-end gap-2">
             <button class="btn btn-secondary no-print" @click="toggleMealDone(meal)">
               {{ meal.is_done ? '🍳 Mark as todo' : '✅ Mark as Cooked' }}
             </button>
             <div class="text-right">
-              <div style="font-size: 1.25rem; font-weight: bold;">{{ meal.override_people_count || camp?.default_people_count }} Persons</div>
+              <div style="font-size: 1.25rem; font-weight: bold;">{{ meal.override_people_count ||
+                camp?.default_people_count }} Persons</div>
               <div v-if="meal.serves_preference" style="color: var(--color-primary); font-weight: bold;">
                 Target Group: {{ meal.serves_preference.name }}
               </div>
@@ -156,7 +169,8 @@ onMounted(fetchData)
           <div>
             <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-bg-mute);">Ingredients</h3>
             <ul class="ingredient-list">
-              <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number" class="flex justify-between py-2 border-b">
+              <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number"
+                class="flex justify-between py-2 border-b">
                 <span style="font-weight: 500;">{{ ri.ingredient.name }}</span>
                 <span class="text-mute">{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }} {{ ri.unit }}</span>
               </li>
@@ -166,13 +180,14 @@ onMounted(fetchData)
           <div>
             <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-bg-mute);">Instructions</h3>
             <div class="instructions-text">
-              <MarkdownView v-if="getRecipe(meal.recipe)?.instructions" :content="getRecipe(meal.recipe)?.instructions" />
+              <MarkdownView v-if="getRecipe(meal.recipe)?.instructions"
+                :content="getRecipe(meal.recipe)?.instructions" />
               <div v-else class="text-mute">No instructions provided.</div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="only-print text-center text-mute" style="margin-top: 2rem; font-size: 0.8rem;">
         Generated by Camp Meal Planner
       </div>
@@ -213,13 +228,16 @@ onMounted(fetchData)
   .no-print {
     display: none !important;
   }
+
   .only-print {
     display: block !important;
   }
+
   .card {
     border: none;
     padding: 0;
   }
+
   body {
     background: white;
   }

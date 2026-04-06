@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { CampMealSchema, DietaryPreferenceSchema } from '../client'
+import { useI18n } from '../composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   show: boolean
@@ -28,24 +31,24 @@ watch(() => props.meal, (newMeal) => {
 <template>
   <div v-if="show && meal" class="modal-backdrop" @click="$emit('update:show', false)">
     <div class="modal" @click.stop>
-      <h3 class="modal-title">Edit Assigned Meal</h3>
-      <p class="text-mute subtitle">Specify participant overrides or subgroups for {{ recipeName }}</p>
+      <h3 class="modal-title">{{ t('edit_meal.title') }}</h3>
+      <p class="text-mute subtitle">{{ recipeName }}</p>
       
       <div class="flex-col gap-4 modal-body">
         <div class="form-group">
-          <label class="label">Override People Count (Optional)</label>
-          <input type="number" class="input" v-model="localPeopleCount" placeholder="Default from camp settings" />
+          <label class="label">{{ t('edit_meal.people_count') }}</label>
+          <input type="number" class="input" v-model="localPeopleCount" :placeholder="t('edit_meal.use_default')" />
         </div>
         <div class="form-group">
-          <label class="label">Meal Target Subgroup (Optional)</label>
+          <label class="label">{{ t('edit_meal.serves_preference') }}</label>
           <select class="input" v-model="localPreferenceId">
-            <option :value="null">-- For Main Group --</option>
-            <option v-for="pref in preferences" :key="pref.id" :value="pref.id">{{ pref.name }}</option>
+            <option :value="null">-- {{ t('planner.no_preference') }} --</option>
+            <option v-for="pref in preferences" :key="pref.id!" :value="pref.id">{{ pref.name }}</option>
           </select>
         </div>
         <div class="flex justify-end gap-2 footer">
-          <button class="btn btn-secondary" @click="$emit('update:show', false)">Cancel</button>
-          <button class="btn btn-primary" @click="$emit('save', { overridePeopleCount: localPeopleCount, preferenceId: localPreferenceId })">Save Variables</button>
+          <button class="btn btn-secondary" @click="$emit('update:show', false)">{{ t('btn.cancel') }}</button>
+          <button class="btn btn-primary" @click="$emit('save', { overridePeopleCount: localPeopleCount, preferenceId: localPreferenceId })">{{ t('btn.save') }}</button>
         </div>
       </div>
     </div>

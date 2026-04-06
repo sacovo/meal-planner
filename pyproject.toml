@@ -5,18 +5,30 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "boto3<1.36",
     "celery[redis]>=5.6.3",
     "django>=6.0.3",
     "django-cors-headers>=4.9.0",
     "django-environ>=0.13.0",
+    "django-health-check>=4.2.1",
+    "django-modeltranslation>=0.20.2",
     "django-ninja>=1.6.2",
-    "django-sesame>=3.2.3",
+    "django-storages>=1.14.6",
     "django-unfold>=0.87.0",
     "django-vite>=3.1.0",
+    "fastexcel>=0.19.0",
     "google-genai>=1.70.0",
     "gunicorn>=25.3.0",
     "polars[calamine,database,numpy,xlsxwriter]>=1.39.3",
+    "psycopg2-binary>=2.9.10",
     "pydantic>=2.12.5",
     "uvicorn>=0.43.0",
     "whitenoise>=6.12.0",
+    "xlsxwriter>=3.2.9",
+]
+
+[dependency-groups]
+dev = [
+    "isort>=8.0.1",
+    "ty>=0.0.29",
 ]

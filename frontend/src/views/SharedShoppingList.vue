@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { 
-  mealsApiGetSharedShoppingList, 
+import {
+  mealsApiGetSharedShoppingList,
   mealsApiToggleSharedShoppingItem,
   mealsApiGetCurrentUserStatus,
+  mealsApiExportSharedShoppingList,
   type ShoppingListSchema,
   type ShoppingListItemSchema
 } from '../client'
@@ -23,7 +24,6 @@ async function checkAuth() {
   }
 }
 const collapsedCategories = ref<Record<string, boolean>>({})
-const collapsedCompleted = ref(true)
 
 function toggleCategory(cat: string) {
   collapsedCategories.value[cat] = !collapsedCategories.value[cat]
@@ -42,12 +42,12 @@ async function fetchList() {
 async function toggleItem(item: ShoppingListItemSchema) {
   // Optimistically toggle locally directly so user gets instant feedback
   item.is_checked = !item.is_checked
-  
+
   // Await the backend reality
   const { data } = await mealsApiToggleSharedShoppingItem({
-    path: { token: sharedToken, item_id: item.id as string }
+    path: { token: sharedToken, item_id: String(item.id!) }
   })
-  
+
   // If it failed for some reason, the next poll will repair it automatically.
   if (data) {
     // Optionally sync up in case backend returned forced data
@@ -66,11 +66,6 @@ const itemsByCategory = computed(() => {
   return grouped
 })
 
-const doneItems = computed(() => {
-  if (!shoppingList.value) return []
-  return shoppingList.value.items.filter((i:any) => i.is_checked)
-})
-
 const categoryCounts = computed(() => {
   const counts: Record<string, { done: number, total: number }> = {}
   if (!shoppingList.value) return counts
@@ -82,6 +77,24 @@ const categoryCounts = computed(() => {
   })
   return counts
 })
+
+async function exportExcel() {
+  const res = await mealsApiExportSharedShoppingList({
+    path: { token: sharedToken },
+    parseAs: 'blob'
+  })
+  if (res.data) {
+    const blob = res.data as unknown as Blob
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `shopping_list.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
+}
 
 function copyLink() {
   const url = window.location.href
@@ -103,26 +116,32 @@ onUnmounted(() => {
 
 <template>
   <div v-if="shoppingList" class="flex-col gap-4">
-    <div class="flex items-center justify-between" style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 1rem; position: sticky; top: 0; z-index: 10;">
+    <div class="flex items-center justify-between"
+      style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 1rem; ">
       <div>
-        <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge" style="margin-bottom: 0.5rem; text-decoration: none; display: inline-block;">← Back to Planner</RouterLink>
+        <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge"
+          style="margin-bottom: 0.5rem; text-decoration: none; display: inline-block;">← Back to Planner</RouterLink>
         <h2 style="margin: 0; font-size: 1.5rem;">Live Shopping List</h2>
         <p class="text-mute" style="margin: 0; font-size: 0.9rem;">Changes are synchronized in real-time.</p>
       </div>
-      <button class="btn btn-secondary" @click="copyLink">🔗 Share Link</button>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary" @click="exportExcel">📥 Export</button>
+        <button class="btn btn-secondary" @click="copyLink">🔗 Share Link</button>
+      </div>
     </div>
 
 
     <!-- Grouped Categories -->
-    <div v-for="(items, category) in itemsByCategory" :key="category" class="card" :style="categoryCounts[category as string].done === categoryCounts[category as string].total ? 'opacity: 0.7; border-style: dashed;' : ''">
-      <div 
-        class="flex justify-between items-center cursor-pointer" 
+    <div v-for="(items, category) in itemsByCategory" :key="category" class="card"
+      :style="categoryCounts[category as string].done === categoryCounts[category as string].total ? 'opacity: 0.7; border-style: dashed;' : ''">
+      <div class="flex justify-between items-center cursor-pointer"
         style="margin-top: 0; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;"
-        @click="toggleCategory(category as string)"
-      >
+        @click="toggleCategory(category as string)">
         <div class="flex items-center gap-2">
-          <h3 style="margin: 0; font-size: inherit;" :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
-            {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{ category }}
+          <h3 style="margin: 0; font-size: inherit;"
+            :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
+            {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{
+              category }}
           </h3>
           <span style="font-size: 0.75rem; color: var(--color-text-mute); text-transform: none; font-weight: normal;">
             ({{ categoryCounts[category as string].done }} / {{ categoryCounts[category as string].total }} done)
@@ -132,19 +151,15 @@ onUnmounted(() => {
           {{ collapsedCategories[category as string] ? '+' : '−' }}
         </span>
       </div>
-      
-      <ul v-show="!collapsedCategories[category as string]" style="list-style: none; padding: 0; padding-top: 1rem; margin: 0;" class="flex-col gap-2">
-        <li 
-          v-for="item in items" 
-          :key="(item.id as string)" 
-          class="shopping-item"
-          :class="{ 'checked-item text-mute': item.is_checked }"
-          @click="toggleItem(item)"
-        >
+
+      <ul v-show="!collapsedCategories[category as string]"
+        style="list-style: none; padding: 0; padding-top: 1rem; margin: 0;" class="flex-col gap-2">
+        <li v-for="item in items" :key="item.id!" class="shopping-item"
+          :class="{ 'checked-item text-mute': item.is_checked }" @click="toggleItem(item)">
           <div class="checkbox" :class="{ 'checked': item.is_checked }">
             {{ item.is_checked ? '✓' : '' }}
           </div>
-          
+
           <div class="item-content" :style="item.is_checked ? 'text-decoration: line-through' : ''">
             <div class="item-name">
               <strong v-if="item.ingredient">{{ (item as any).ingredient.name }}</strong>
@@ -159,7 +174,7 @@ onUnmounted(() => {
                   <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
                 </ul>
               </details>
-              
+
               <!-- Desktop flat list -->
               <div class="source-desktop hidden-mobile text-mute">
                 <ul :style="item.is_checked ? 'text-decoration: none' : ''">
@@ -168,8 +183,9 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
-          
-          <div class="item-measurement text-right text-mute border-left" :style="item.is_checked ? 'text-decoration: line-through' : ''">
+
+          <div class="item-measurement text-right text-mute border-left"
+            :style="item.is_checked ? 'text-decoration: line-through' : ''">
             <strong>{{ parseFloat((item.amount).toFixed(2)) }} {{ item.unit }}</strong>
           </div>
         </li>
@@ -235,6 +251,7 @@ onUnmounted(() => {
 .hidden-desktop {
   display: block;
 }
+
 .hidden-mobile {
   display: none;
 }
@@ -243,10 +260,12 @@ onUnmounted(() => {
   margin-top: 4px;
   font-size: 0.8rem;
 }
+
 .source-details summary {
   cursor: pointer;
   font-size: 0.75rem;
 }
+
 .source-details ul {
   padding-left: 1rem;
   margin: 4px 0 0 0;
@@ -259,6 +278,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 1rem;
   }
+
   .item-name {
     flex: none;
     width: 200px;
@@ -266,16 +286,20 @@ onUnmounted(() => {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .item-sources {
     flex: none;
     padding: 0;
   }
+
   .hidden-desktop {
     display: none;
   }
+
   .hidden-mobile {
     display: block;
   }
+
   .source-desktop ul {
     padding: 0;
     margin: 0;

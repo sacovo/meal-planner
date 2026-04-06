@@ -5,29 +5,65 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0003_ingredientunitconversion_needs_review'),
+        ("meals", "0003_ingredientunitconversion_needs_review"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DietaryPreference',
+            name="DietaryPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(db_index=True, max_length=255, unique=True)),
-                ('category', models.CharField(choices=[('PRODUCE', 'Produce / Vegetables / Fruit'), ('MEAT', 'Meat / Poultry / Seafood'), ('DAIRY', 'Dairy / Fridge'), ('PANTRY', 'Pantry / Dry Goods'), ('SPICES', 'Spices / Condiments'), ('BREAD', 'Bakery / Bread'), ('DRINKS', 'Drinks'), ('FROZEN', 'Frozen'), ('NON_FOOD', 'Non-Food / General'), ('OTHER', 'Other')], default='OTHER', max_length=50)),
-                ('base_unit', models.CharField(help_text='e.g. grams, pieces, ml', max_length=50)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(db_index=True, max_length=255, unique=True)),
+                (
+                    "category",
+                    models.CharField(
+                        choices=[
+                            ("PRODUCE", "Produce / Vegetables / Fruit"),
+                            ("MEAT", "Meat / Poultry / Seafood"),
+                            ("DAIRY", "Dairy / Fridge"),
+                            ("PANTRY", "Pantry / Dry Goods"),
+                            ("SPICES", "Spices / Condiments"),
+                            ("BREAD", "Bakery / Bread"),
+                            ("DRINKS", "Drinks"),
+                            ("FROZEN", "Frozen"),
+                            ("NON_FOOD", "Non-Food / General"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="OTHER",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "base_unit",
+                    models.CharField(help_text="e.g. grams, pieces, ml", max_length=50),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='campmeal',
-            name='serves_preference',
-            field=models.ForeignKey(blank=True, help_text='If this meal slot serves a specific subgroup', null=True, on_delete=django.db.models.deletion.SET_NULL, to='meals.dietarypreference'),
+            model_name="campmeal",
+            name="serves_preference",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="If this meal slot serves a specific subgroup",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="meals.dietarypreference",
+            ),
         ),
         migrations.AddField(
-            model_name='recipe',
-            name='preferences',
-            field=models.ManyToManyField(blank=True, related_name='recipes', to='meals.dietarypreference'),
+            model_name="recipe",
+            name="preferences",
+            field=models.ManyToManyField(
+                blank=True, related_name="recipes", to="meals.dietarypreference"
+            ),
         ),
     ]

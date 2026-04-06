@@ -10,7 +10,7 @@ describe('GeneralItems.vue', () => {
 
   it('renders items when provided', () => {
     const wrapper = mount(GeneralItems, {
-      props: { items: mockItems as any }
+      props: { items: mockItems as any, canMove: true, isMoving: false }
     })
     expect(wrapper.text()).toContain('Item 1')
     expect(wrapper.text()).toContain('2x')
@@ -20,7 +20,7 @@ describe('GeneralItems.vue', () => {
 
   it('emits add event when add button is clicked with input', async () => {
     const wrapper = mount(GeneralItems, {
-      props: { items: [] }
+      props: { items: [], canMove: true, isMoving: false }
     })
     
     const inputs = wrapper.findAll('input')
@@ -34,7 +34,7 @@ describe('GeneralItems.vue', () => {
 
   it('emits delete event when delete button is clicked', async () => {
     const wrapper = mount(GeneralItems, {
-      props: { items: mockItems as any }
+      props: { items: mockItems as any, canMove: true, isMoving: false }
     })
     
     await wrapper.find('.delete-btn').trigger('click')
@@ -44,7 +44,7 @@ describe('GeneralItems.vue', () => {
 
   it('renders empty message when no items', () => {
     const wrapper = mount(GeneralItems, {
-      props: { items: [] }
+      props: { items: [], canMove: true, isMoving: false }
     })
     expect(wrapper.text()).toContain('No items added yet')
   })

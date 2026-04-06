@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0002_alter_shoppinglist_camp'),
+        ("meals", "0002_alter_shoppinglist_camp"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='ingredientunitconversion',
-            name='needs_review',
-            field=models.BooleanField(default=False, help_text='Set to true if automatically captured from a recipe and needs admin conversion factor'),
+            model_name="ingredientunitconversion",
+            name="needs_review",
+            field=models.BooleanField(
+                default=False,
+                help_text="Set to true if automatically captured from a recipe and needs admin conversion factor",
+            ),
         ),
     ]

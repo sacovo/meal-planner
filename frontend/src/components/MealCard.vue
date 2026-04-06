@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { CampMealSchema, CampSchema } from '../client'
+import { useI18n } from '../composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   meal: CampMealSchema
@@ -47,8 +50,8 @@ const emit = defineEmits<{
     </div>
     
     <div class="flex justify-between items-center text-mute info-row">
-      <span v-if="meal.override_people_count !== null">{{ meal.override_people_count }} people</span>
-      <span v-else>{{ camp.default_people_count }} people</span>
+      <span v-if="meal.override_people_count !== null">{{ meal.override_people_count }} {{ t('misc.people') }}</span>
+      <span v-else>{{ camp.default_people_count }} {{ t('misc.people') }}</span>
       
       <span v-if="meal.serves_preference" class="preference-tag">
         ({{ meal.serves_preference.name }})
@@ -92,7 +95,7 @@ const emit = defineEmits<{
   overflow: hidden; 
   text-overflow: ellipsis; 
   white-space: nowrap; 
-  max-width: 80px;
+  max-width: 130px;
 }
 
 .controls {

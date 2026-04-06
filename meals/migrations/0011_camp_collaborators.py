@@ -5,16 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0010_campmeal_is_done'),
+        ("meals", "0010_campmeal_is_done"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='camp',
-            name='collaborators',
-            field=models.ManyToManyField(blank=True, related_name='collaboration_camps', to=settings.AUTH_USER_MODEL),
+            model_name="camp",
+            name="collaborators",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="collaboration_camps",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

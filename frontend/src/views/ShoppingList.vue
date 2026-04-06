@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { mealsApiGetShoppingList, type ShoppingListSchema } from '../client'
+import { mealsApiGetShoppingList, mealsApiExportShoppingList, type ShoppingListSchema } from '../client'
 
 const route = useRoute()
 const campId = route.params.id as string
@@ -12,6 +12,25 @@ async function fetchList() {
   if (!listId) return
   const { data } = await mealsApiGetShoppingList({ path: { list_id: listId } })
   if (data) list.value = data
+}
+
+async function exportExcel() {
+  if (!listId) return
+  const res = await mealsApiExportShoppingList({
+    path: { list_id: listId },
+    parseAs: 'blob'
+  })
+  if (res.data) {
+    const blob = res.data as unknown as Blob
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `shopping_list.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
 }
 
 onMounted(fetchList)
@@ -35,7 +54,10 @@ const groupedItems = computed(() => {
         <RouterLink :to="`/camps/${campId}`" class="badge" style="margin-bottom: 0.5rem">← Back to Planner</RouterLink>
         <h2>Shopping List</h2>
       </div>
-      <button class="btn btn-secondary">⎙ Export PDF</button>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary" @click="exportExcel">📥 Export Excel</button>
+        <button class="btn btn-secondary">⎙ Export PDF</button>
+      </div>
     </div>
 
     <!-- Grouped lists -->

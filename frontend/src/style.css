@@ -1,8 +1,8 @@
 :root {
   /* Color Palette - Premium Modern Glassmorphism/Neumorphism style */
-  --color-primary: #92720b;
-  --color-primary-hover: #795b0b;
-  --color-primary-light: #e3c300;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #d1fae5;
 
   --color-bg-base: #f9fafb;
   --color-bg-surface: #ffffff;
@@ -21,10 +21,10 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-sm: 3px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
 
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -222,7 +222,7 @@ h2 {
 
 /* Page Layout */
 .page-container {
-  padding: 2rem 0;
+  padding: 2rem 5px;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -277,6 +277,13 @@ h2 {
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

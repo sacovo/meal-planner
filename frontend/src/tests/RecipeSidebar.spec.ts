@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import RecipeSidebar from '../components/RecipeSidebar.vue'
 
 describe('RecipeSidebar.vue', () => {
@@ -13,7 +13,9 @@ describe('RecipeSidebar.vue', () => {
       props: {
         recipes: mockRecipes as any,
         searchQuery: '',
-        isCollapsed: false
+        isCollapsed: false,
+        preferences: [],
+        allTags: []
       }
     })
     expect(wrapper.text()).toContain('Recipe 1')
@@ -26,7 +28,9 @@ describe('RecipeSidebar.vue', () => {
       props: {
         recipes: mockRecipes as any,
         searchQuery: 'Recipe 1',
-        isCollapsed: false
+        isCollapsed: false,
+        preferences: [],
+        allTags: []
       }
     })
     expect(wrapper.text()).toContain('Recipe 1')
@@ -38,7 +42,9 @@ describe('RecipeSidebar.vue', () => {
       props: {
         recipes: mockRecipes as any,
         searchQuery: '',
-        isCollapsed: false
+        isCollapsed: false,
+        preferences: [],
+        allTags: []
       }
     })
     await wrapper.find('.toggle-sidebar-btn').trigger('click')
@@ -51,7 +57,9 @@ describe('RecipeSidebar.vue', () => {
       props: {
         recipes: mockRecipes as any,
         searchQuery: '',
-        isCollapsed: false
+        isCollapsed: false,
+        preferences: [],
+        allTags: []
       }
     })
     const firstRecipe = wrapper.find('.recipe-draggable')
@@ -64,7 +72,9 @@ describe('RecipeSidebar.vue', () => {
       props: {
         recipes: mockRecipes as any,
         searchQuery: '',
-        isCollapsed: true
+        isCollapsed: true,
+        preferences: [],
+        allTags: []
       }
     })
     expect(wrapper.find('.vertical-text').exists()).toBe(true)

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import re
 from pathlib import Path
+
+from django.utils.translation import gettext_lazy as _
 from environ import Env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,12 +35,13 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
-CORS_ALLOW_ALL_ORIGINS = True # Simplified for dev
+CORS_ALLOW_ALL_ORIGINS = True  # Simplified for dev
 CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
 INSTALLED_APPS = [
+    "modeltranslation",  # must be before admin
     "unfold",  # before django.contrib.admin
     "unfold.contrib.filters",  # optional, if special filters are needed
     "unfold.contrib.forms",  # optional, if special form elements are needed
@@ -53,6 +56,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_vite",
     "meals",
+    "content",
+    "health_check",
 ]
 
 MIDDLEWARE = [
@@ -60,6 +65,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -72,7 +78,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "frontend"],
+        "DIRS": [BASE_DIR / "frontend", BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -126,7 +132,7 @@ STORAGES = {
             "file_overwrite": True,
             "region_name": env.str("S3_REGION_NAME", default="us-east-1"),
             "endpoint_url": env.str("S3_ENDPOINT_URL", ""),
-            # "custom_domain": env.str("S3_DOMAIN", ""),
+            "custom_domain": env.str("S3_DOMAIN", ""),
             "addressing_style": "auto",
         },
     },
@@ -139,7 +145,15 @@ STORAGES = {
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = env.str("LANGUAGE_CODE", default="en-us")
+LANGUAGE_CODE = "de"
+
+LANGUAGES = [
+    ("de", _("Deutsch")),
+    ("fr", _("Français")),
+]
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = "de"
+MODELTRANSLATION_LANGUAGES = ("de", "fr")
 
 TIME_ZONE = env.str("TIME_ZONE", default="UTC")
 
@@ -182,13 +196,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Databases are configured above
 
 
-
 UNFOLD = {
-    "SITE_TITLE": "Administration",
-    "SITE_HEADER": "Abstimmungsstudio",
-    "SITE_SUBHEADER": "digital/organizing",
-    "SITE_SYMBOL": "how_to_vote",
-    "SHOW_LANGUAGES": False,
+    "SITE_TITLE": "Meal Planner",
+    "SITE_HEADER": "Meal Planner",
+    "SITE_SUBHEADER": "Lager & Events",
+    "SITE_SYMBOL": "restaurant",
+    "SHOW_LANGUAGES": True,
     "SIDEBAR": {
         "show_search": True,  # Search in applications and models names
         "command_search": True,
@@ -212,17 +225,17 @@ UNFOLD = {
             "950": "oklch(13% .028 261.692)",
         },
         "primary": {
-            "50": "oklch(98.2% .024 99.57)",
-            "100": "oklch(96.1% .055 99.84)",
-            "200": "oklch(92.3% .105 100.24)",
-            "300": "oklch(87.5% .156 99.87)",
-            "400": "oklch(81.8% .178 97.89)",
-            "500": "oklch(76.7% .159 95.71)",
-            "600": "oklch(68.2% .136 92.48)",
-            "700": "oklch(56.8% .113 88.67)",
-            "800": "oklch(48.9% .096 85.32)",
-            "900": "oklch(42.1% .081 82.94)",
-            "950": "oklch(32.4% .063 81.26)",
+            "50": "oklch(98.5% .01 160)",
+            "100": "oklch(96% .03 160)",
+            "200": "oklch(91% .06 160)",
+            "300": "oklch(85% .10 160)",
+            "400": "oklch(78% .14 160)",
+            "500": "oklch(68% .16 160)",
+            "600": "oklch(55% .15 160)",
+            "700": "oklch(45% .13 160)",
+            "800": "oklch(35% .10 160)",
+            "900": "oklch(25% .08 160)",
+            "950": "oklch(15% .06 160)",
         },
         "font": {
             "subtle-light": "var(--color-base-500)",
@@ -233,6 +246,14 @@ UNFOLD = {
             "important-dark": "var(--color-base-100)",
         },
     },
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "de": "🇩🇪",
+                "fr": "🇫🇷",
+            },
+        },
+    },
 }
 
 # Removed custom schedules
@@ -241,11 +262,25 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "sesame.backends.ModelBackend",
 ]
 
 # Celery Broker settings
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = env.str("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = env.str(
+    "CELERY_RESULT_BACKEND", default="redis://localhost:6379/0"
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+HEALTH_CHECK_TOKEN = env.str("HEALTH_CHECK_TOKEN", default="this-is-a-secret")
+
+# Email Configuration
+EMAIL_BACKEND = env.str(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = env.str("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@mealplanner.local")

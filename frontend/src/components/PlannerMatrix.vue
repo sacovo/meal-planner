@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MealCard from './MealCard.vue'
 import type { CampSchema, CampMealSchema } from '../client'
+import { useI18n } from '../composables/useI18n';
 
 const props = defineProps<{
   camp: CampSchema
@@ -10,6 +11,8 @@ const props = defineProps<{
   selectedMeals: string[]
   recipeNames: Record<string, string>
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'update:selectedMeals', val: string[]): void
@@ -24,13 +27,13 @@ const emit = defineEmits<{
 function isDaySelected(day: string) {
   const dayMeals = getMealsForDay(day)
   if (dayMeals.length === 0) return false
-  return dayMeals.every(m => props.selectedMeals.includes(m.id))
+  return dayMeals.every(m => props.selectedMeals.includes(m.id!))
 }
 
 function isDayPartial(day: string) {
   const dayMeals = getMealsForDay(day)
   if (dayMeals.length === 0) return false
-  const selectedCount = dayMeals.filter(m => props.selectedMeals.includes(m.id)).length
+  const selectedCount = dayMeals.filter(m => props.selectedMeals.includes(m.id!)).length
   return selectedCount > 0 && selectedCount < dayMeals.length
 }
 
@@ -63,15 +66,11 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
                 {{ new Date(day).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) }}
               </div>
               <label v-if="getMealsForDay(day).length > 0" class="flex items-center gap-1 select-day-label" @click.stop>
-                <input 
-                  type="checkbox" 
-                  :checked="isDaySelected(day)" 
-                  :indeterminate="isDayPartial(day)"
-                  @change="$emit('toggle-day', day)"
-                />
+                <input type="checkbox" :checked="isDaySelected(day)" :indeterminate="isDayPartial(day)"
+                  @change="$emit('toggle-day', day)" />
                 Select Day
               </label>
-              <span v-else class="text-mute empty-day-msg">No meals</span>
+              <span v-else class="text-mute empty-day-msg">{{ t('planner.no_meals') }}</span>
             </div>
           </th>
         </tr>
@@ -79,33 +78,21 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
       <tbody>
         <tr v-for="mt in mealTypesConfig" :key="mt.val">
           <td class="sticky-col label-cell">{{ mt.label }}</td>
-          <td 
-            v-for="day in campDays" 
-            :key="day" 
-            class="droppable-cell"
-            @dragover.prevent
-            @dragenter.prevent
-            @drop="$emit('drop', $event, day, mt.val)"
-          >
+          <td v-for="day in campDays" :key="day" class="droppable-cell" @dragover.prevent @dragenter.prevent
+            @drop="$emit('drop', $event, day, mt.val)">
             <!-- Render Assigned Meals -->
             <div class="meals-list">
-              <MealCard 
-                v-for="meal in (mealsGrid[day] && mealsGrid[day][mt.val] ? mealsGrid[day][mt.val] : [])" 
-                :key="meal.id as string"
-                :meal="meal"
-                :camp="camp"
-                :recipe-name="recipeNames[meal.recipe as string] || 'Unknown'"
-                :is-selected="selectedMeals.includes(meal.id)"
-                @update:is-selected="handleMealSelection(meal.id, $event)"
-                @edit="$emit('edit-meal', meal)"
-                @toggle-done="$emit('toggle-done', meal)"
-                @remove="$emit('remove-meal', meal)"
-              />
+              <MealCard v-for="meal in (mealsGrid[day] && mealsGrid[day][mt.val] ? mealsGrid[day][mt.val] : [])"
+                :key="meal.id!" :meal="meal" :camp="camp" :recipe-name="recipeNames[meal.recipe as string] || 'Unknown'"
+                :is-selected="selectedMeals.includes(meal.id!)"
+                @update:is-selected="handleMealSelection(meal.id!, $event)" @edit="$emit('edit-meal', meal)"
+                @toggle-done="$emit('toggle-done', meal)" @remove="$emit('remove-meal', meal)" />
             </div>
-            
+
             <!-- Blank Canvas Text -->
-            <div v-if="!(mealsGrid[day] && mealsGrid[day][mt.val] && mealsGrid[day][mt.val].length > 0)" class="empty-drop">
-              Drop Here
+            <div v-if="!(mealsGrid[day] && mealsGrid[day][mt.val] && mealsGrid[day][mt.val].length > 0)"
+              class="empty-drop">
+              {{ t('planner.drop_here') }}
             </div>
           </td>
         </tr>
@@ -123,7 +110,7 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 }
 
 .title-print {
-  margin-bottom: 1rem; 
+  margin-bottom: 1rem;
   display: none;
 }
 
@@ -132,7 +119,8 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
   border-collapse: collapse;
 }
 
-.planner-table th, .planner-table td {
+.planner-table th,
+.planner-table td {
   border: 1px solid var(--color-border);
   padding: 0.5rem;
   vertical-align: top;
@@ -146,7 +134,7 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 }
 
 .day-col {
-  min-width: 150px; 
+  min-width: 220px;
   text-align: center;
 }
 
@@ -155,8 +143,8 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 }
 
 .day-header {
-  font-size: 1rem; 
-  margin-bottom: 0.2rem; 
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
   font-weight: normal;
   transition: color 0.2s;
 }
@@ -166,13 +154,13 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 }
 
 .select-day-label {
-  font-weight: normal; 
-  font-size: 0.75rem; 
+  font-weight: normal;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
 .empty-day-msg {
-  font-size: 0.7rem; 
+  font-size: 0.7rem;
   font-weight: normal;
 }
 
@@ -186,7 +174,8 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 
 .label-cell {
   background: var(--color-bg-surface);
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Slight shadow to separate from scrollable row */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  /* Slight shadow to separate from scrollable row */
   display: flex;
   align-items: center;
   min-height: 80px;
@@ -199,7 +188,8 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
   transition: background 0.2s ease;
 }
 
-.droppable-cell:hover, .droppable-cell:-moz-drag-over {
+.droppable-cell:hover,
+.droppable-cell:-moz-drag-over {
   background: #fdf5e6;
 }
 
@@ -210,6 +200,7 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
   text-align: center;
   padding: 1rem 0;
   transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 .droppable-cell:hover .empty-drop {

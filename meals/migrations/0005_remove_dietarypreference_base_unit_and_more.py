@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0004_dietarypreference_campmeal_serves_preference_and_more'),
+        ("meals", "0004_dietarypreference_campmeal_serves_preference_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='dietarypreference',
-            name='base_unit',
+            model_name="dietarypreference",
+            name="base_unit",
         ),
         migrations.RemoveField(
-            model_name='dietarypreference',
-            name='category',
+            model_name="dietarypreference",
+            name="category",
         ),
         migrations.AlterField(
-            model_name='dietarypreference',
-            name='name',
+            model_name="dietarypreference",
+            name="name",
             field=models.CharField(max_length=50, unique=True),
         ),
     ]

@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0005_remove_dietarypreference_base_unit_and_more'),
+        ("meals", "0005_remove_dietarypreference_base_unit_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='shoppinglistitem',
-            name='source_meals_text',
-            field=models.JSONField(blank=True, default=list, help_text='List of descriptions marking where this came from'),
+            model_name="shoppinglistitem",
+            name="source_meals_text",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="List of descriptions marking where this came from",
+            ),
         ),
     ]

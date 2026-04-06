@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from '../composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   collaborators: string[]
@@ -33,9 +36,9 @@ const isOwner = computed(() => props.ownerUsername === props.currentUserUsername
         <div class="flex items-center gap-2">
           <span class="user-icon">👑</span>
           <span class="username">{{ ownerUsername }}</span>
-          <span class="badge owner-badge">Owner</span>
+          <span class="badge owner-badge">{{ t('collab.owner') }}</span>
         </div>
-        <span class="text-mute italic text-sm">Cannot be removed</span>
+        <span class="text-mute italic text-sm">—</span>
       </div>
       
       <div v-for="username in collaborators" :key="username" class="member-item flex justify-between items-center p-2 border rounded">
@@ -49,22 +52,22 @@ const isOwner = computed(() => props.ownerUsername === props.currentUserUsername
           class="btn btn-sm btn-danger-outline" 
           @click="$emit('remove', username)"
         >
-          {{ username === currentUserUsername ? 'Leave' : 'Remove' }}
+          {{ username === currentUserUsername ? t('collab.remove') : t('btn.remove') }}
         </button>
       </div>
     </div>
     
     <div v-if="isOwner" class="invite-form flex-col gap-2 mt-4">
-      <label class="text-sm font-semibold">Invite by Username</label>
+      <label class="text-sm font-semibold">{{ t('collab.invite') }}</label>
       <div class="flex gap-2">
         <input 
           type="text" 
           class="input flex-1" 
           v-model="newUsername" 
-          placeholder="Enter exact username..."
+          :placeholder="t('collab.username_placeholder')"
           @keyup.enter="handleInvite"
         />
-        <button class="btn btn-primary" @click="handleInvite" :disabled="!newUsername.trim()">Invite</button>
+        <button class="btn btn-primary" @click="handleInvite" :disabled="!newUsername.trim()">{{ t('collab.invite_btn') }}</button>
       </div>
       <p class="text-xs text-mute">Collaborators have full access to edit meals and shopping lists.</p>
     </div>

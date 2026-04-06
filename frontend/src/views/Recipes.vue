@@ -1,22 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { 
-  mealsApiListRecipes, 
-  mealsApiCreateRecipe, 
+import { ref, onMounted, computed, watch } from 'vue'
+import {
+  mealsApiListRecipes,
+  mealsApiCreateRecipe,
   mealsApiImportRecipe,
-  type RecipeSchema 
+  mealsApiListTags,
+  mealsApiListPreferences,
+  type RecipeSchema,
+  type DietaryPreferenceSchema
 } from '../client'
 import { useRouter } from 'vue-router'
+import TagInput from '../components/TagInput.vue'
+import { useI18n } from '../composables/useI18n'
 
+const { t } = useI18n()
 const router = useRouter()
 
 const recipes = ref<RecipeSchema[]>([])
 const searchQuery = ref('')
-const filteredRecipes = computed(() => {
-  if (!searchQuery.value) return recipes.value
-  const q = searchQuery.value.toLowerCase()
-  return recipes.value.filter(r => r.name.toLowerCase().includes(q))
-})
+const selectedTags = ref<string[]>([])
+const selectedPreferenceId = ref<number | null>(null)
+
+const allTags = ref<string[]>([])
+const allPreferences = ref<DietaryPreferenceSchema[]>([])
+
+const totalCount = ref(0)
+const currentPage = ref(1)
+const isLoading = ref(false)
+
 const showCreateModal = ref(false)
 const newRecipe = ref({
   name: '',
@@ -30,10 +41,53 @@ const showImportModal = ref(false)
 const importText = ref('')
 const isImporting = ref(false)
 
-async function fetchRecipes() {
-  const { data } = await mealsApiListRecipes()
-  if (data) recipes.value = data
+async function fetchData(reset = false) {
+  if (reset) {
+    currentPage.value = 1
+  }
+
+  isLoading.value = true
+  try {
+    const [recipesRes, tagsRes, prefsRes] = await Promise.all([
+      mealsApiListRecipes({
+        query: {
+          page: currentPage.value,
+          q: searchQuery.value || undefined,
+          tags: selectedTags.value.length > 0 ? selectedTags.value.join(',') : undefined,
+          preference_id: selectedPreferenceId.value || undefined
+        }
+      }),
+      mealsApiListTags(),
+      mealsApiListPreferences()
+    ])
+
+    if (recipesRes.data) {
+      if (reset) {
+        recipes.value = recipesRes.data.items
+      } else {
+        recipes.value.push(...recipesRes.data.items)
+      }
+      totalCount.value = recipesRes.data.count
+    }
+    if (tagsRes.data) allTags.value = tagsRes.data
+    if (prefsRes.data) allPreferences.value = prefsRes.data
+  } finally {
+    isLoading.value = false
+  }
 }
+
+const hasMore = computed(() => recipes.value.length < totalCount.value)
+
+function loadMore() {
+  if (hasMore.value && !isLoading.value) {
+    currentPage.value++
+    fetchData()
+  }
+}
+
+watch([searchQuery, selectedTags, selectedPreferenceId], () => {
+  fetchData(true)
+})
 
 async function handleCreateRecipe() {
   if (!newRecipe.value.name) return
@@ -62,58 +116,98 @@ async function handleImportRecipe() {
   }
 }
 
-onMounted(fetchRecipes)
+onMounted(fetchData)
 </script>
 
 <template>
   <div>
     <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
-      <h2>Recipes & Ingredients</h2>
+      <h2>{{ t('recipe.title') }}</h2>
       <div class="flex gap-2">
-        <button class="btn btn-secondary" @click="showImportModal = true">✨ Magic AI Import</button>
-        <button class="btn btn-primary" @click="showCreateModal = true">+ Create Recipe</button>
+        <button class="btn btn-secondary" @click="showImportModal = true">✨ {{ t('recipe.import') }}</button>
+        <button class="btn btn-primary" @click="showCreateModal = true">+ {{ t('recipe.create') }}</button>
       </div>
     </div>
-    
-    <div style="margin-bottom: 2rem;">
-      <input type="text" class="input" v-model="searchQuery" placeholder="Search recipes..." style="max-width: 400px;" />
+
+    <div class="flex gap-4 items-end filters-bar" style="margin-bottom: 2rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 250px;">
+        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('btn.search')
+          }}</label>
+        <input type="text" class="input" v-model="searchQuery" :placeholder="t('recipe.search_placeholder')" />
+      </div>
+
+      <div style="flex: 1; min-width: 250px;">
+        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('recipe.tags')
+          }}</label>
+        <TagInput v-model="selectedTags" :suggestions="allTags" :placeholder="t('planner.filter')" />
+      </div>
+
+      <div style="flex: 0.5; min-width: 150px;">
+        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('recipe.tags')
+          }}</label>
+        <select v-model="selectedPreferenceId" class="input" style="height: 42px;">
+          <option :value="null">{{ t('planner.all_recipes') }}</option>
+          <option v-for="p in allPreferences" :key="p.id!" :value="p.id">{{ p.name }}</option>
+        </select>
+      </div>
     </div>
-    
-    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-      <router-link v-for="recipe in filteredRecipes" :key="recipe.id as string" :to="`/recipes/${recipe.id}`" class="card" style="text-decoration: none; color: inherit; cursor: pointer;">
-        <h3>{{ recipe.name }}</h3>
-        <p class="text-mute">{{ recipe.default_portions }} portions</p>
-        <div class="flex gap-1 flex-wrap" style="margin-top: 0.5rem;" v-if="recipe.preferences && recipe.preferences.length > 0">
-          <span v-for="pref in recipe.preferences" :key="pref.id" style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 2px 6px; border-radius: 4px;">
-            {{ pref.name }}
-          </span>
-        </div>
-      </router-link>
-      <div v-if="filteredRecipes.length === 0" class="text-mute">
-        No recipes found.
+
+    <div class="flex-col gap-8" style="margin-top: 2rem;">
+      <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        <router-link v-for="recipe in recipes" :key="recipe.id as string" :to="`/recipes/${recipe.id}`" class="card"
+          style="text-decoration: none; color: inherit; cursor: pointer;">
+          <h3>{{ recipe.name }}</h3>
+          <p class="text-mute">{{ recipe.default_portions }} {{ t('recipe.portions') }}</p>
+          <div class="flex gap-1 flex-wrap" style="margin-top: 0.5rem;"
+            v-if="recipe.preferences && recipe.preferences.length > 0">
+            <span v-for="pref in recipe.preferences" :key="pref.id!"
+              style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 2px 6px; border-radius: 4px;">
+              {{ pref.name }}
+            </span>
+          </div>
+        </router-link>
+      </div>
+
+      <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center" style="padding: 2rem;">
+        {{ t('recipe.no_results') }}
+      </div>
+
+      <div v-if="hasMore" class="flex justify-center" style="margin-top: 2rem;">
+        <button class="btn btn-secondary" @click="loadMore" :disabled="isLoading">
+          {{ isLoading ? t('btn.loading') : t('btn.search') }}
+        </button>
+      </div>
+      <div v-else-if="recipes.length > 0" class="text-center text-mute" style="font-size: 0.85rem; margin-top: 2rem;">
+        {{ totalCount }} {{ t('recipe.title') }}
       </div>
     </div>
 
     <!-- Modal for Recipe -->
     <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
       <div class="card modal-card">
-        <h3>Create New Recipe</h3>
+        <h3>{{ t('recipe.create') }}</h3>
         <div class="flex-col gap-4" style="margin-top: 1rem;">
           <div>
-            <label>Name</label>
+            <label>{{ t('camp.name_label') }}</label>
             <input class="input" v-model="newRecipe.name" placeholder="Spaghetti Bolognese" />
           </div>
           <div>
-            <label>Default Portions</label>
+            <label>{{ t('recipe.portions') }}</label>
             <input class="input" type="number" v-model="newRecipe.default_portions" />
           </div>
           <div>
-            <label>Description</label>
+            <label>{{ t('recipe.description') }}</label>
             <textarea class="input" v-model="newRecipe.description" rows="3"></textarea>
           </div>
+          <div>
+            <label>{{ t('recipe.tags') }}</label>
+            <div style="margin-top: 0.25rem;">
+              <TagInput v-model="newRecipe.tags" :suggestions="allTags" :placeholder="t('btn.add')" />
+            </div>
+          </div>
           <div class="flex gap-2" style="margin-top: 1rem; justify-content: flex-end;">
-            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-            <button class="btn btn-primary" @click="handleCreateRecipe">Create</button>
+            <button class="btn btn-secondary" @click="showCreateModal = false">{{ t('btn.cancel') }}</button>
+            <button class="btn btn-primary" @click="handleCreateRecipe">{{ t('btn.create') }}</button>
           </div>
         </div>
       </div>
@@ -122,29 +216,24 @@ onMounted(fetchRecipes)
     <!-- Modal for Magic Import -->
     <div v-if="showImportModal" class="modal-overlay" @click.self="showImportModal = false">
       <div class="card modal-card">
-        <h3 class="flex items-center gap-2">✨ Magic AI Recipe Import</h3>
+        <h3 class="flex items-center gap-2">✨ {{ t('recipe.import') }}</h3>
         <p class="text-mute" style="margin-bottom: 1rem; font-size: 0.9rem;">
-          Paste a recipe from a website, notes, or chat. Our AI will automatically extract the name, portions, instructions, and all ingredients for you.
+          {{ t('recipe.import_text') }}
         </p>
-        
+
         <div v-if="!isImporting" class="flex-col gap-4">
-          <textarea 
-            class="input" 
-            v-model="importText" 
-            placeholder="Paste your recipe text here..." 
-            rows="10"
-            style="font-family: inherit;"
-          ></textarea>
+          <textarea class="input" v-model="importText" :placeholder="t('recipe.import_text')" rows="10"
+            style="font-family: inherit;"></textarea>
           <div class="flex gap-2 justify-end">
-            <button class="btn btn-secondary" @click="showImportModal = false">Cancel</button>
-            <button class="btn btn-primary" @click="handleImportRecipe" :disabled="!importText">Start AI Import</button>
+            <button class="btn btn-secondary" @click="showImportModal = false">{{ t('btn.cancel') }}</button>
+            <button class="btn btn-primary" @click="handleImportRecipe" :disabled="!importText">{{ t('recipe.import')
+              }}</button>
           </div>
         </div>
 
         <div v-else class="flex-col items-center justify-center" style="padding: 3rem 1rem;">
           <div class="loader-spinner"></div>
-          <p style="margin-top: 1.5rem; font-weight: 500;">AI is analyzing ingredients...</p>
-          <p class="text-mute" style="font-size: 0.85rem;">This takes about 5 seconds.</p>
+          <p style="margin-top: 1.5rem; font-weight: 500;">{{ t('recipe.importing') }}</p>
         </div>
       </div>
     </div>
@@ -183,7 +272,12 @@ onMounted(fetchRecipes)
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

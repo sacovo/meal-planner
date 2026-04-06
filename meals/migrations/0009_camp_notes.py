@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('meals', '0008_shoppinglist_meals'),
+        ("meals", "0008_shoppinglist_meals"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='camp',
-            name='notes',
-            field=models.TextField(blank=True, help_text='General notes for the camp (e.g., special events, allergies summary)'),
+            model_name="camp",
+            name="notes",
+            field=models.TextField(
+                blank=True,
+                help_text="General notes for the camp (e.g., special events, allergies summary)",
+            ),
         ),
     ]
