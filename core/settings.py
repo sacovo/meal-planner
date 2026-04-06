@@ -276,14 +276,15 @@ CELERY_TASK_SERIALIZER = "json"
 HEALTH_CHECK_TOKEN = env.str("HEALTH_CHECK_TOKEN", default="this-is-a-secret")
 
 # Email Configuration
-EMAIL_BACKEND = env.str(
-    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+# Configure via EMAIL_URL, e.g.:
+#   smtp://user:password@smtp.example.com:587/?_default_from_email=no-reply@example.com
+#   smtp+tls://user:password@smtp.example.com:587/
+#   console:  (for local development)
+EMAIL_CONFIG = env.email_url(
+    "EMAIL_URL",
+    default="consolemail://",
 )
-EMAIL_HOST = env.str("EMAIL_HOST", default="localhost")
-EMAIL_PORT = env.int("EMAIL_PORT", default=25)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
-EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
+vars().update(EMAIL_CONFIG)
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@mealplanner.local")
 
 # django-invitations
