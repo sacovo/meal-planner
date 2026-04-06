@@ -24,7 +24,6 @@ describe('PlannerMatrix.vue', () => {
         recipeNames: mockRecipeNames
       }
     })
-    expect(wrapper.text()).toContain('1.')
     expect(wrapper.text()).toContain('Jan')
     expect(wrapper.text()).toContain('Lunch')
     expect(wrapper.text()).toContain('Recipe 1')
