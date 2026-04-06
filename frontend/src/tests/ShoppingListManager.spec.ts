@@ -21,7 +21,8 @@ describe('ShoppingListManager.vue', () => {
         loading: false
       }
     })
-    expect(wrapper.text()).toContain('5 checked menus')
+    expect(wrapper.text()).toContain('5')
+    expect(wrapper.text()).toContain('misc.meals')
   })
 
   it('renders loading state', () => {
@@ -33,7 +34,7 @@ describe('ShoppingListManager.vue', () => {
         loading: true
       }
     })
-    expect(wrapper.text()).toContain('Loading lists...')
+    expect(wrapper.text()).toContain('btn.loading')
   })
 
   it('renders shopping lists when shown', () => {
@@ -45,7 +46,7 @@ describe('ShoppingListManager.vue', () => {
         loading: false
       }
     })
-    expect(wrapper.text()).toContain('Shopping Lists')
+    expect(wrapper.text()).toContain('shopping.title')
     expect(wrapper.text()).toContain('Pasta')
     expect(wrapper.text()).toContain('2024-01-01')
   })

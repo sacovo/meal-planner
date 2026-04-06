@@ -15,7 +15,7 @@ describe('CampNotes.vue', () => {
     const wrapper = mount(CampNotes, {
       props: { notes: '' }
     })
-    expect(wrapper.text()).toContain('No special notes')
+    expect(wrapper.text()).toContain('notes.empty')
   })
 
   it('emits edit event when edit button is clicked', async () => {

@@ -24,7 +24,8 @@ describe('MealCard.vue', () => {
       }
     })
     expect(wrapper.text()).toContain('Test Recipe')
-    expect(wrapper.text()).toContain('10 people')
+    expect(wrapper.text()).toContain('10')
+    expect(wrapper.text()).toContain('misc.people')
   })
 
   it('renders overrides when provided', () => {
@@ -37,7 +38,8 @@ describe('MealCard.vue', () => {
         isSelected: false
       }
     })
-    expect(wrapper.text()).toContain('5 people')
+    expect(wrapper.text()).toContain('5')
+    expect(wrapper.text()).toContain('misc.people')
     expect(wrapper.text()).toContain('(Kids)')
   })
 

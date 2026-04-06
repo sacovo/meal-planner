@@ -21,7 +21,9 @@ vi.mock('../client', () => ({
   mealsApiListRecipes: vi.fn(() => Promise.resolve({ data: { items: [], count: 0 } })),
   mealsApiListPreferences: vi.fn(() => Promise.resolve({ data: [] })),
   mealsApiListCampGeneralItems: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListCampShoppingLists: vi.fn(() => Promise.resolve({ data: [] }))
+  mealsApiListCampShoppingLists: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiListTags: vi.fn(() => Promise.resolve({ data: [] })),
+  coreApiAccount: vi.fn(() => Promise.resolve({ data: { username: 'testuser' } }))
 }))
 
 describe('CampPlanner.vue', () => {
@@ -43,7 +45,8 @@ describe('CampPlanner.vue', () => {
     await vi.dynamicImportSettled()
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    expect(wrapper.text()).toContain('Plan: Test Camp')
+    expect(wrapper.text()).toContain('plan')
+    expect(wrapper.text()).toContain('Test Camp')
   })
 
   it('opens edit modal when edit button is clicked', async () => {
@@ -57,7 +60,7 @@ describe('CampPlanner.vue', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
 
     // Find the ⚙️ Edit button in the header
-    const editBtn = wrapper.findAll('button').find(b => b.text().includes('Edit'))
+    const editBtn = wrapper.findAll('button').find(b => b.text().toLowerCase().includes('edit'))
     expect(editBtn).toBeTruthy()
     
     await editBtn?.trigger('click')

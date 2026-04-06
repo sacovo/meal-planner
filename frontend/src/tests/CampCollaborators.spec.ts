@@ -16,7 +16,7 @@ describe('CampCollaborators.vue', () => {
     expect(wrapper.text()).toContain('owner')
     expect(wrapper.text()).toContain('user1')
     expect(wrapper.text()).toContain('user2')
-    expect(wrapper.text()).toContain('Invite')
+    expect(wrapper.text()).toContain('collab.invite_btn')
   })
 
   it('shows remove buttons only for owner or self', () => {
@@ -36,7 +36,7 @@ describe('CampCollaborators.vue', () => {
     const removeButtons = wrapper.findAll('.btn-danger-outline')
     // user1 can remove self, but cannot remove user2 or owner
     expect(removeButtons.length).toBe(1)
-    expect(removeButtons[0].text()).toBe('Leave')
+    expect(removeButtons[0].text()).toBe('collab.remove')
   })
 
   it('emits invite when invite button is clicked', async () => {

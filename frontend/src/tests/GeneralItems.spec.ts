@@ -46,6 +46,6 @@ describe('GeneralItems.vue', () => {
     const wrapper = mount(GeneralItems, {
       props: { items: [], canMove: true, isMoving: false }
     })
-    expect(wrapper.text()).toContain('No items added yet')
+    expect(wrapper.text()).toContain('misc.no_data')
   })
 })

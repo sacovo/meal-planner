@@ -1,38 +1,50 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import RecipeSidebar from '../components/RecipeSidebar.vue'
+import { vi } from 'vitest'
+
+vi.mock('../client', () => ({
+  mealsApiListRecipes: vi.fn((args) => {
+    const query = args?.query?.q?.toLowerCase() || ''
+    const allItems = [
+      { id: '1', name: 'Recipe 1', default_portions: 4, preferences: [] },
+      { id: '2', name: 'Recipe 2', default_portions: 2, preferences: [{ id: 1, name: 'Vegan' }] }
+    ]
+    const items = allItems.filter(i => i.name.toLowerCase().includes(query))
+    return Promise.resolve({ data: { items, count: items.length } })
+  })
+}))
 
 describe('RecipeSidebar.vue', () => {
-  const mockRecipes = [
-    { id: '1', name: 'Recipe 1', default_portions: 4, preferences: [] },
-    { id: '2', name: 'Recipe 2', default_portions: 2, preferences: [{ id: 1, name: 'Vegan' }] }
-  ]
-
-  it('renders recipes when not collapsed', () => {
+  it('renders recipes when not collapsed', async () => {
     const wrapper = mount(RecipeSidebar, {
       props: {
-        recipes: mockRecipes as any,
         searchQuery: '',
         isCollapsed: false,
         preferences: [],
         allTags: []
       }
     })
+    await vi.dynamicImportSettled()
+    await new Promise(resolve => setTimeout(resolve, 0))
+
     expect(wrapper.text()).toContain('Recipe 1')
     expect(wrapper.text()).toContain('Recipe 2')
     expect(wrapper.text()).toContain('Vegan')
   })
 
-  it('filters recipes based on search query', () => {
+  it('filters recipes based on search query', async () => {
     const wrapper = mount(RecipeSidebar, {
       props: {
-        recipes: mockRecipes as any,
         searchQuery: 'Recipe 1',
         isCollapsed: false,
         preferences: [],
         allTags: []
       }
     })
+    await vi.dynamicImportSettled()
+    await new Promise(resolve => setTimeout(resolve, 0))
+
     expect(wrapper.text()).toContain('Recipe 1')
     expect(wrapper.text()).not.toContain('Recipe 2')
   })
@@ -40,7 +52,6 @@ describe('RecipeSidebar.vue', () => {
   it('emits update:isCollapsed when toggle button is clicked', async () => {
     const wrapper = mount(RecipeSidebar, {
       props: {
-        recipes: mockRecipes as any,
         searchQuery: '',
         isCollapsed: false,
         preferences: [],
@@ -55,13 +66,15 @@ describe('RecipeSidebar.vue', () => {
   it('emits dragstart when recipe is dragged', async () => {
     const wrapper = mount(RecipeSidebar, {
       props: {
-        recipes: mockRecipes as any,
         searchQuery: '',
         isCollapsed: false,
         preferences: [],
         allTags: []
       }
     })
+    await vi.dynamicImportSettled()
+    await new Promise(resolve => setTimeout(resolve, 0))
+
     const firstRecipe = wrapper.find('.recipe-draggable')
     await firstRecipe.trigger('dragstart')
     expect(wrapper.emitted('dragstart')).toBeTruthy()
@@ -70,7 +83,6 @@ describe('RecipeSidebar.vue', () => {
   it('shows vertical text when collapsed', () => {
     const wrapper = mount(RecipeSidebar, {
       props: {
-        recipes: mockRecipes as any,
         searchQuery: '',
         isCollapsed: true,
         preferences: [],
