@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
+    "invitations",
     "corsheaders",
     "django_vite",
     "meals",
@@ -284,3 +285,10 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@mealplanner.local")
+
+# django-invitations
+# SIGNUP_REDIRECT is the URL *name* to send accepted-invite users to.
+# We redirect to the frontend catch-all so Vue Router can show /login.
+INVITATIONS_SIGNUP_REDIRECT = "frontend"
+# Allow accepting invitations via a plain GET (email links are always GET).
+INVITATIONS_CONFIRM_INVITE_ON_GET = True

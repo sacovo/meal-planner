@@ -28,6 +28,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path(f"health/{settings.HEALTH_CHECK_TOKEN}/", HealthCheckView.as_view()),
+    path("invitations/", include("invitations.urls", namespace="invitations")),
     path("api/", api.urls),
     re_path(r"^.*$", views.frontend, name="frontend"),
 ]
