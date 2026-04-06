@@ -78,33 +78,22 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 
 <template>
   <div class="card flex-col gap-2 sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
-    <button 
-      class="btn btn-secondary toggle-sidebar-btn shadow-md"
-      @click="$emit('update:isCollapsed', !isCollapsed)"
-      :title="isCollapsed ? 'Show Menu Pool' : 'Hide Menu Pool'"
-    >
+    <button class="btn btn-secondary toggle-sidebar-btn shadow-md" @click="$emit('update:isCollapsed', !isCollapsed)"
+      :title="isCollapsed ? 'Show Menu Pool' : 'Hide Menu Pool'">
       {{ isCollapsed ? '»' : '«' }}
     </button>
 
     <div v-show="!isCollapsed" class="flex-col gap-2 content">
       <h3>{{ t('planner.menu_pool') }}</h3>
       <p class="text-mute subtitle">{{ t('recipe.search_placeholder') }}</p>
-      
-      <div class="flex-col gap-1.5 filters-area">
-        <input 
-          type="text" 
-          class="input search-input" 
-          :value="searchQuery" 
-          @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
-          :placeholder="t('recipe.search_placeholder')" 
-        />
 
-        <TagInput 
-          v-model="selectedTags" 
-          :suggestions="allTags" 
-          :placeholder="t('planner.filter')"
-          class="sidebar-tag-input"
-        />
+      <div class="flex-col gap-1.5 filters-area">
+        <input type="text" class="input search-input" :value="searchQuery"
+          @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
+          :placeholder="t('recipe.search_placeholder')" />
+
+        <TagInput v-model="selectedTags" :suggestions="allTags" :placeholder="t('planner.filter')"
+          class="sidebar-tag-input" />
 
         <select v-model="selectedPreferenceId" class="input filter-select">
           <option :value="null">{{ t('planner.all_recipes') }}</option>
@@ -113,13 +102,8 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
       </div>
 
       <div class="recipes-list flex-col gap-2">
-        <div 
-          v-for="recipe in recipes" 
-          :key="recipe.id!" 
-          class="recipe-draggable"
-          draggable="true"
-          @dragstart="onDragStart($event, recipe)"
-        >
+        <div v-for="recipe in recipes" :key="recipe.id!" class="recipe-draggable" draggable="true"
+          @dragstart="onDragStart($event, recipe)">
           <div class="flex justify-between items-start header-row">
             <strong class="recipe-name" :title="recipe.name">{{ recipe.name }}</strong>
             <span class="text-mute portions">{{ recipe.default_portions }}p</span>
@@ -136,26 +120,27 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
         </div>
 
         <div v-if="hasMore" class="flex justify-center" style="margin-top: 0.5rem; margin-bottom: 1rem;">
-          <button class="btn btn-secondary btn-sm" @click="loadMore" :disabled="isLoading" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+          <button class="btn btn-secondary btn-sm" @click="loadMore" :disabled="isLoading"
+            style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
             {{ isLoading ? '...' : t('btn.search') }}
           </button>
         </div>
       </div>
     </div>
-    
+
     <div v-show="isCollapsed" class="flex-col items-center justify-center h-full collapsed-indicator">
       <div class="vertical-text">
-         {{ t('planner.menu_pool') }}
-       </div>
+        {{ t('planner.menu_pool') }}
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .sidebar {
-  background: var(--color-bg-mute); 
+  background: var(--color-bg-mute);
   border: 1px solid var(--color-border);
-  position: relative; 
+  position: relative;
   overflow: visible;
 }
 
@@ -184,9 +169,10 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   margin-bottom: 0.5rem;
 }
 
-.search-input, .filter-select {
-  font-size: 0.85rem; 
-  padding: 0.5rem 0.75rem; 
+.search-input,
+.filter-select {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
   height: 38px;
 }
 
@@ -217,15 +203,15 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 }
 
 .recipes-list {
-  overflow-y: auto; 
-  max-height: calc(100vh - 350px); 
+  overflow-y: auto;
+  max-height: 520px;
   padding-right: 0.5rem;
 }
 
 .recipe-draggable {
-  padding: 0.75rem; 
-  background: var(--color-bg-surface); 
-  border: 1px solid var(--color-border); 
+  padding: 0.75rem;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: grab;
   user-select: none;
@@ -235,7 +221,7 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 .recipe-draggable:active {
   cursor: grabbing;
   transform: scale(0.98);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .header-row {
@@ -243,13 +229,13 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 }
 
 .recipe-name {
-  white-space: nowrap; 
-  overflow: hidden; 
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .portions {
-  font-size: 0.75rem; 
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -271,11 +257,11 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
 }
 
 .vertical-text {
-  writing-mode: vertical-rl; 
-  transform: rotate(180deg); 
-  opacity: 0.5; 
-  font-weight: bold; 
-  font-size: 0.8rem; 
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  opacity: 0.5;
+  font-weight: bold;
+  font-size: 0.8rem;
   margin-top: 2rem;
 }
 </style>
