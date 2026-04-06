@@ -87,9 +87,10 @@ class IngredientAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 @admin.register(IngredientUnitConversion)
 class IngredientUnitConversionAdmin(ModelAdmin):
-    list_display = ("ingredient", "unit_name", "multiplier", "needs_review")
-    list_filter = ("needs_review",)
+    list_display = ("ingredient",  "unit_name", "multiplier", "ingredient__base_unit", "needs_review")
+    list_filter = ("needs_review", "ingredient__base_unit")
     search_fields = ("ingredient__name", "unit_name")
+    list_editable = ("needs_review", "multiplier")
 
 class RecipeIngredientInline(TabularInline):
     model = RecipeIngredient
