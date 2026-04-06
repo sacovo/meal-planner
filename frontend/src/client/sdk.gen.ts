@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { ContentApiGetTextsData, ContentApiGetTextsResponses, CoreApiAccountData, CoreApiAccountResponses, CoreApiChangePasswordViewData, CoreApiChangePasswordViewErrors, CoreApiChangePasswordViewResponses, CoreApiLoginViewData, CoreApiLoginViewErrors, CoreApiLoginViewResponses, CoreApiLogoutViewData, CoreApiLogoutViewResponses, CoreApiPasswordResetConfirmData, CoreApiPasswordResetConfirmResponses, CoreApiPasswordResetRequestData, CoreApiPasswordResetRequestResponses, CoreApiSetLanguageData, CoreApiSetLanguageResponses, CoreApiUpdateProfileData, CoreApiUpdateProfileResponses, MealsApiAddManualShoppingItemData, MealsApiAddManualShoppingItemResponses, MealsApiAddRecipeIngredientData, MealsApiAddRecipeIngredientResponses, MealsApiCreateCampData, MealsApiCreateCampGeneralItemData, MealsApiCreateCampGeneralItemResponses, MealsApiCreateCampMealData, MealsApiCreateCampMealResponses, MealsApiCreateCampResponses, MealsApiCreateIngredientData, MealsApiCreateIngredientResponses, MealsApiCreateRecipeData, MealsApiCreateRecipeResponses, MealsApiDeleteCampData, MealsApiDeleteCampGeneralItemData, MealsApiDeleteCampGeneralItemResponses, MealsApiDeleteCampMealData, MealsApiDeleteCampMealResponses, MealsApiDeleteCampResponses, MealsApiDeleteRecipeIngredientData, MealsApiDeleteRecipeIngredientResponses, MealsApiDeleteShoppingListData, MealsApiDeleteShoppingListResponses, MealsApiExportInventoryExcelData, MealsApiExportInventoryExcelResponses, MealsApiExportSharedShoppingListData, MealsApiExportSharedShoppingListResponses, MealsApiExportShoppingListData, MealsApiExportShoppingListResponses, MealsApiGenerateShoppingListData, MealsApiGenerateShoppingListResponses, MealsApiGetCampData, MealsApiGetCampResponses, MealsApiGetCurrentUserStatusData, MealsApiGetCurrentUserStatusResponses, MealsApiGetInventoryStatusData, MealsApiGetInventoryStatusResponses, MealsApiGetRecipeData, MealsApiGetRecipeResponses, MealsApiGetSharedShoppingListData, MealsApiGetSharedShoppingListResponses, MealsApiGetShoppingListData, MealsApiGetShoppingListResponses, MealsApiImportRecipeData, MealsApiImportRecipeResponses, MealsApiInviteCollaboratorData, MealsApiInviteCollaboratorResponses, MealsApiInviteRecipeCollaboratorData, MealsApiInviteRecipeCollaboratorResponses, MealsApiListCampGeneralItemsData, MealsApiListCampGeneralItemsResponses, MealsApiListCampMealsData, MealsApiListCampMealsResponses, MealsApiListCampsData, MealsApiListCampShoppingListsData, MealsApiListCampShoppingListsResponses, MealsApiListCampsResponses, MealsApiListIngredientsData, MealsApiListIngredientsResponses, MealsApiListPreferencesData, MealsApiListPreferencesResponses, MealsApiListRecipeIngredientsData, MealsApiListRecipeIngredientsResponses, MealsApiListRecipesData, MealsApiListRecipesResponses, MealsApiListTagsData, MealsApiListTagsResponses, MealsApiListUnitsData, MealsApiListUnitsResponses, MealsApiMoveGeneralItemsToShoppingListData, MealsApiMoveGeneralItemsToShoppingListResponses, MealsApiRemoveCollaboratorData, MealsApiRemoveCollaboratorResponses, MealsApiRemoveRecipeCollaboratorData, MealsApiRemoveRecipeCollaboratorResponses, MealsApiToggleCampMealDoneData, MealsApiToggleCampMealDoneResponses, MealsApiToggleSharedShoppingItemData, MealsApiToggleSharedShoppingItemResponses, MealsApiUpdateCampData, MealsApiUpdateCampMealData, MealsApiUpdateCampMealResponses, MealsApiUpdateCampResponses, MealsApiUpdateRecipeData, MealsApiUpdateRecipeIngredientData, MealsApiUpdateRecipeIngredientResponses, MealsApiUpdateRecipeResponses } from './types.gen';
+import type { ContentApiGetTextsData, ContentApiGetTextsResponses, CoreApiAccountData, CoreApiAccountResponses, CoreApiChangePasswordViewData, CoreApiChangePasswordViewErrors, CoreApiChangePasswordViewResponses, CoreApiGetCurrentUserStatusData, CoreApiGetCurrentUserStatusResponses, CoreApiLoginViewData, CoreApiLoginViewErrors, CoreApiLoginViewResponses, CoreApiLogoutViewData, CoreApiLogoutViewResponses, CoreApiPasswordResetConfirmData, CoreApiPasswordResetConfirmResponses, CoreApiPasswordResetRequestData, CoreApiPasswordResetRequestResponses, CoreApiSetLanguageData, CoreApiSetLanguageResponses, CoreApiUpdateProfileData, CoreApiUpdateProfileResponses, MealsApiCampsCreateCampData, MealsApiCampsCreateCampGeneralItemData, MealsApiCampsCreateCampGeneralItemResponses, MealsApiCampsCreateCampResponses, MealsApiCampsDeleteCampData, MealsApiCampsDeleteCampGeneralItemData, MealsApiCampsDeleteCampGeneralItemResponses, MealsApiCampsDeleteCampResponses, MealsApiCampsGetCampData, MealsApiCampsGetCampResponses, MealsApiCampsInviteCollaboratorData, MealsApiCampsInviteCollaboratorResponses, MealsApiCampsListCampGeneralItemsData, MealsApiCampsListCampGeneralItemsResponses, MealsApiCampsListCampsData, MealsApiCampsListCampsResponses, MealsApiCampsRemoveCollaboratorData, MealsApiCampsRemoveCollaboratorResponses, MealsApiCampsUpdateCampData, MealsApiCampsUpdateCampResponses, MealsApiIngredientsCreateIngredientData, MealsApiIngredientsCreateIngredientResponses, MealsApiIngredientsListIngredientsData, MealsApiIngredientsListIngredientsResponses, MealsApiIngredientsListTagsData, MealsApiIngredientsListTagsResponses, MealsApiIngredientsListUnitsData, MealsApiIngredientsListUnitsResponses, MealsApiInventoryExportInventoryExcelData, MealsApiInventoryExportInventoryExcelResponses, MealsApiInventoryGetInventoryStatusData, MealsApiInventoryGetInventoryStatusResponses, MealsApiMealsCreateCampMealData, MealsApiMealsCreateCampMealResponses, MealsApiMealsDeleteCampMealData, MealsApiMealsDeleteCampMealResponses, MealsApiMealsListCampMealsData, MealsApiMealsListCampMealsResponses, MealsApiMealsToggleCampMealDoneData, MealsApiMealsToggleCampMealDoneResponses, MealsApiMealsUpdateCampMealData, MealsApiMealsUpdateCampMealResponses, MealsApiRecipesAddRecipeIngredientData, MealsApiRecipesAddRecipeIngredientResponses, MealsApiRecipesCreateRecipeData, MealsApiRecipesCreateRecipeResponses, MealsApiRecipesDeleteRecipeIngredientData, MealsApiRecipesDeleteRecipeIngredientResponses, MealsApiRecipesGetRecipeData, MealsApiRecipesGetRecipeResponses, MealsApiRecipesImportRecipeData, MealsApiRecipesImportRecipeResponses, MealsApiRecipesInviteRecipeCollaboratorData, MealsApiRecipesInviteRecipeCollaboratorResponses, MealsApiRecipesListPreferencesData, MealsApiRecipesListPreferencesResponses, MealsApiRecipesListRecipeIngredientsData, MealsApiRecipesListRecipeIngredientsResponses, MealsApiRecipesListRecipesData, MealsApiRecipesListRecipesResponses, MealsApiRecipesRemoveRecipeCollaboratorData, MealsApiRecipesRemoveRecipeCollaboratorResponses, MealsApiRecipesUpdateRecipeData, MealsApiRecipesUpdateRecipeIngredientData, MealsApiRecipesUpdateRecipeIngredientResponses, MealsApiRecipesUpdateRecipeResponses, MealsApiShoppingAddManualShoppingItemData, MealsApiShoppingAddManualShoppingItemResponses, MealsApiShoppingDeleteShoppingListData, MealsApiShoppingDeleteShoppingListResponses, MealsApiShoppingExportSharedShoppingListData, MealsApiShoppingExportSharedShoppingListResponses, MealsApiShoppingExportShoppingListData, MealsApiShoppingExportShoppingListResponses, MealsApiShoppingGenerateShoppingListData, MealsApiShoppingGenerateShoppingListResponses, MealsApiShoppingGetSharedShoppingListData, MealsApiShoppingGetSharedShoppingListResponses, MealsApiShoppingGetShoppingListData, MealsApiShoppingGetShoppingListResponses, MealsApiShoppingListCampShoppingListsData, MealsApiShoppingListCampShoppingListsResponses, MealsApiShoppingMoveGeneralItemsToShoppingListData, MealsApiShoppingMoveGeneralItemsToShoppingListResponses, MealsApiShoppingToggleSharedShoppingItemData, MealsApiShoppingToggleSharedShoppingItemResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -117,9 +117,14 @@ export const coreApiPasswordResetConfirm = <ThrowOnError extends boolean = false
 export const coreApiSetLanguage = <ThrowOnError extends boolean = false>(options: Options<CoreApiSetLanguageData, ThrowOnError>) => (options.client ?? client).get<CoreApiSetLanguageResponses, unknown, ThrowOnError>({ url: '/api/set-language/', ...options });
 
 /**
+ * Get Current User Status
+ */
+export const coreApiGetCurrentUserStatus = <ThrowOnError extends boolean = false>(options?: Options<CoreApiGetCurrentUserStatusData, ThrowOnError>) => (options?.client ?? client).get<CoreApiGetCurrentUserStatusResponses, unknown, ThrowOnError>({ url: '/api/meals/auth/me', ...options });
+
+/**
  * List Camps
  */
-export const mealsApiListCamps = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListCampsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListCampsResponses, unknown, ThrowOnError>({
+export const mealsApiCampsListCamps = <ThrowOnError extends boolean = false>(options?: Options<MealsApiCampsListCampsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiCampsListCampsResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -132,7 +137,7 @@ export const mealsApiListCamps = <ThrowOnError extends boolean = false>(options?
 /**
  * Create Camp
  */
-export const mealsApiCreateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampResponses, unknown, ThrowOnError>({
+export const mealsApiCampsCreateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsCreateCampData, ThrowOnError>) => (options.client ?? client).post<MealsApiCampsCreateCampResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -149,7 +154,7 @@ export const mealsApiCreateCamp = <ThrowOnError extends boolean = false>(options
 /**
  * Delete Camp
  */
-export const mealsApiDeleteCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteCampData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteCampResponses, unknown, ThrowOnError>({
+export const mealsApiCampsDeleteCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsDeleteCampData, ThrowOnError>) => (options.client ?? client).delete<MealsApiCampsDeleteCampResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -162,7 +167,7 @@ export const mealsApiDeleteCamp = <ThrowOnError extends boolean = false>(options
 /**
  * Get Camp
  */
-export const mealsApiGetCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetCampData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetCampResponses, unknown, ThrowOnError>({
+export const mealsApiCampsGetCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsGetCampData, ThrowOnError>) => (options.client ?? client).get<MealsApiCampsGetCampResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -175,7 +180,7 @@ export const mealsApiGetCamp = <ThrowOnError extends boolean = false>(options: O
 /**
  * Update Camp
  */
-export const mealsApiUpdateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiUpdateCampData, ThrowOnError>) => (options.client ?? client).put<MealsApiUpdateCampResponses, unknown, ThrowOnError>({
+export const mealsApiCampsUpdateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsUpdateCampData, ThrowOnError>) => (options.client ?? client).put<MealsApiCampsUpdateCampResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -192,7 +197,7 @@ export const mealsApiUpdateCamp = <ThrowOnError extends boolean = false>(options
 /**
  * Invite Collaborator
  */
-export const mealsApiInviteCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiInviteCollaboratorData, ThrowOnError>) => (options.client ?? client).post<MealsApiInviteCollaboratorResponses, unknown, ThrowOnError>({
+export const mealsApiCampsInviteCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsInviteCollaboratorData, ThrowOnError>) => (options.client ?? client).post<MealsApiCampsInviteCollaboratorResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -209,7 +214,7 @@ export const mealsApiInviteCollaborator = <ThrowOnError extends boolean = false>
 /**
  * Remove Collaborator
  */
-export const mealsApiRemoveCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiRemoveCollaboratorData, ThrowOnError>) => (options.client ?? client).delete<MealsApiRemoveCollaboratorResponses, unknown, ThrowOnError>({
+export const mealsApiCampsRemoveCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsRemoveCollaboratorData, ThrowOnError>) => (options.client ?? client).delete<MealsApiCampsRemoveCollaboratorResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -220,349 +225,9 @@ export const mealsApiRemoveCollaborator = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Get Current User Status
- */
-export const mealsApiGetCurrentUserStatus = <ThrowOnError extends boolean = false>(options?: Options<MealsApiGetCurrentUserStatusData, ThrowOnError>) => (options?.client ?? client).get<MealsApiGetCurrentUserStatusResponses, unknown, ThrowOnError>({ url: '/api/meals/auth/me', ...options });
-
-/**
- * Toggle Camp Meal Done
- */
-export const mealsApiToggleCampMealDone = <ThrowOnError extends boolean = false>(options: Options<MealsApiToggleCampMealDoneData, ThrowOnError>) => (options.client ?? client).put<MealsApiToggleCampMealDoneResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/meals/{meal_id}/toggle-done',
-    ...options
-});
-
-/**
- * Get Inventory Status
- */
-export const mealsApiGetInventoryStatus = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetInventoryStatusData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetInventoryStatusResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/inventory-status',
-    ...options
-});
-
-/**
- * Export Inventory Excel
- */
-export const mealsApiExportInventoryExcel = <ThrowOnError extends boolean = false>(options: Options<MealsApiExportInventoryExcelData, ThrowOnError>) => (options.client ?? client).get<MealsApiExportInventoryExcelResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/inventory-status/export',
-    ...options
-});
-
-/**
- * List Ingredients
- */
-export const mealsApiListIngredients = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListIngredientsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListIngredientsResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/ingredients',
-    ...options
-});
-
-/**
- * Create Ingredient
- */
-export const mealsApiCreateIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateIngredientResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/ingredients',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List Units
- */
-export const mealsApiListUnits = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListUnitsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListUnitsResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/units',
-    ...options
-});
-
-/**
- * List Tags
- */
-export const mealsApiListTags = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListTagsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListTagsResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/tags',
-    ...options
-});
-
-/**
- * List Recipes
- */
-export const mealsApiListRecipes = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListRecipesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListRecipesResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes',
-    ...options
-});
-
-/**
- * Create Recipe
- */
-export const mealsApiCreateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateRecipeResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Import Recipe
- */
-export const mealsApiImportRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiImportRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiImportRecipeResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/import',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Get Recipe
- */
-export const mealsApiGetRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetRecipeData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetRecipeResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}',
-    ...options
-});
-
-/**
- * Update Recipe
- */
-export const mealsApiUpdateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiUpdateRecipeData, ThrowOnError>) => (options.client ?? client).put<MealsApiUpdateRecipeResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * List Recipe Ingredients
- */
-export const mealsApiListRecipeIngredients = <ThrowOnError extends boolean = false>(options: Options<MealsApiListRecipeIngredientsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListRecipeIngredientsResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/ingredients',
-    ...options
-});
-
-/**
- * Add Recipe Ingredient
- */
-export const mealsApiAddRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiAddRecipeIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiAddRecipeIngredientResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/ingredients',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete Recipe Ingredient
- */
-export const mealsApiDeleteRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteRecipeIngredientData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteRecipeIngredientResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}',
-    ...options
-});
-
-/**
- * Update Recipe Ingredient
- */
-export const mealsApiUpdateRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiUpdateRecipeIngredientData, ThrowOnError>) => (options.client ?? client).put<MealsApiUpdateRecipeIngredientResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Invite Recipe Collaborator
- */
-export const mealsApiInviteRecipeCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiInviteRecipeCollaboratorData, ThrowOnError>) => (options.client ?? client).post<MealsApiInviteRecipeCollaboratorResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/collaborators',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Remove Recipe Collaborator
- */
-export const mealsApiRemoveRecipeCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiRemoveRecipeCollaboratorData, ThrowOnError>) => (options.client ?? client).delete<MealsApiRemoveRecipeCollaboratorResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/recipes/{recipe_id}/collaborators/{username}',
-    ...options
-});
-
-/**
- * List Preferences
- */
-export const mealsApiListPreferences = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListPreferencesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListPreferencesResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/preferences',
-    ...options
-});
-
-/**
- * List Camp Meals
- */
-export const mealsApiListCampMeals = <ThrowOnError extends boolean = false>(options: Options<MealsApiListCampMealsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListCampMealsResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/meals',
-    ...options
-});
-
-/**
- * Create Camp Meal
- */
-export const mealsApiCreateCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampMealData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampMealResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/meals',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete Camp Meal
- */
-export const mealsApiDeleteCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteCampMealData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteCampMealResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/meals/{meal_id}',
-    ...options
-});
-
-/**
- * Update Camp Meal
- */
-export const mealsApiUpdateCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiUpdateCampMealData, ThrowOnError>) => (options.client ?? client).put<MealsApiUpdateCampMealResponses, unknown, ThrowOnError>({
-    security: [{
-            in: 'cookie',
-            name: 'sessionid',
-            type: 'apiKey'
-        }],
-    url: '/api/meals/camps/{camp_id}/meals/{meal_id}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * List Camp General Items
  */
-export const mealsApiListCampGeneralItems = <ThrowOnError extends boolean = false>(options: Options<MealsApiListCampGeneralItemsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListCampGeneralItemsResponses, unknown, ThrowOnError>({
+export const mealsApiCampsListCampGeneralItems = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsListCampGeneralItemsData, ThrowOnError>) => (options.client ?? client).get<MealsApiCampsListCampGeneralItemsResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -575,7 +240,7 @@ export const mealsApiListCampGeneralItems = <ThrowOnError extends boolean = fals
 /**
  * Create Camp General Item
  */
-export const mealsApiCreateCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampGeneralItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampGeneralItemResponses, unknown, ThrowOnError>({
+export const mealsApiCampsCreateCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsCreateCampGeneralItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiCampsCreateCampGeneralItemResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -592,7 +257,7 @@ export const mealsApiCreateCampGeneralItem = <ThrowOnError extends boolean = fal
 /**
  * Delete Camp General Item
  */
-export const mealsApiDeleteCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteCampGeneralItemData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteCampGeneralItemResponses, unknown, ThrowOnError>({
+export const mealsApiCampsDeleteCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiCampsDeleteCampGeneralItemData, ThrowOnError>) => (options.client ?? client).delete<MealsApiCampsDeleteCampGeneralItemResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -603,9 +268,318 @@ export const mealsApiDeleteCampGeneralItem = <ThrowOnError extends boolean = fal
 });
 
 /**
+ * List Recipes
+ */
+export const mealsApiRecipesListRecipes = <ThrowOnError extends boolean = false>(options?: Options<MealsApiRecipesListRecipesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiRecipesListRecipesResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes',
+    ...options
+});
+
+/**
+ * Create Recipe
+ */
+export const mealsApiRecipesCreateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesCreateRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiRecipesCreateRecipeResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Import Recipe
+ */
+export const mealsApiRecipesImportRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesImportRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiRecipesImportRecipeResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/import',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Recipe
+ */
+export const mealsApiRecipesGetRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesGetRecipeData, ThrowOnError>) => (options.client ?? client).get<MealsApiRecipesGetRecipeResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}',
+    ...options
+});
+
+/**
+ * Update Recipe
+ */
+export const mealsApiRecipesUpdateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesUpdateRecipeData, ThrowOnError>) => (options.client ?? client).put<MealsApiRecipesUpdateRecipeResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Recipe Ingredients
+ */
+export const mealsApiRecipesListRecipeIngredients = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesListRecipeIngredientsData, ThrowOnError>) => (options.client ?? client).get<MealsApiRecipesListRecipeIngredientsResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/ingredients',
+    ...options
+});
+
+/**
+ * Add Recipe Ingredient
+ */
+export const mealsApiRecipesAddRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesAddRecipeIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiRecipesAddRecipeIngredientResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/ingredients',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Recipe Ingredient
+ */
+export const mealsApiRecipesDeleteRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesDeleteRecipeIngredientData, ThrowOnError>) => (options.client ?? client).delete<MealsApiRecipesDeleteRecipeIngredientResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}',
+    ...options
+});
+
+/**
+ * Update Recipe Ingredient
+ */
+export const mealsApiRecipesUpdateRecipeIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesUpdateRecipeIngredientData, ThrowOnError>) => (options.client ?? client).put<MealsApiRecipesUpdateRecipeIngredientResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Invite Recipe Collaborator
+ */
+export const mealsApiRecipesInviteRecipeCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesInviteRecipeCollaboratorData, ThrowOnError>) => (options.client ?? client).post<MealsApiRecipesInviteRecipeCollaboratorResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/collaborators',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove Recipe Collaborator
+ */
+export const mealsApiRecipesRemoveRecipeCollaborator = <ThrowOnError extends boolean = false>(options: Options<MealsApiRecipesRemoveRecipeCollaboratorData, ThrowOnError>) => (options.client ?? client).delete<MealsApiRecipesRemoveRecipeCollaboratorResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/recipes/{recipe_id}/collaborators/{username}',
+    ...options
+});
+
+/**
+ * List Preferences
+ */
+export const mealsApiRecipesListPreferences = <ThrowOnError extends boolean = false>(options?: Options<MealsApiRecipesListPreferencesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiRecipesListPreferencesResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/preferences',
+    ...options
+});
+
+/**
+ * List Ingredients
+ */
+export const mealsApiIngredientsListIngredients = <ThrowOnError extends boolean = false>(options?: Options<MealsApiIngredientsListIngredientsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiIngredientsListIngredientsResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/ingredients',
+    ...options
+});
+
+/**
+ * Create Ingredient
+ */
+export const mealsApiIngredientsCreateIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiIngredientsCreateIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiIngredientsCreateIngredientResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/ingredients',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Units
+ */
+export const mealsApiIngredientsListUnits = <ThrowOnError extends boolean = false>(options?: Options<MealsApiIngredientsListUnitsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiIngredientsListUnitsResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/units',
+    ...options
+});
+
+/**
+ * List Tags
+ */
+export const mealsApiIngredientsListTags = <ThrowOnError extends boolean = false>(options?: Options<MealsApiIngredientsListTagsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiIngredientsListTagsResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/tags',
+    ...options
+});
+
+/**
+ * List Camp Meals
+ */
+export const mealsApiMealsListCampMeals = <ThrowOnError extends boolean = false>(options: Options<MealsApiMealsListCampMealsData, ThrowOnError>) => (options.client ?? client).get<MealsApiMealsListCampMealsResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/meals',
+    ...options
+});
+
+/**
+ * Create Camp Meal
+ */
+export const mealsApiMealsCreateCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiMealsCreateCampMealData, ThrowOnError>) => (options.client ?? client).post<MealsApiMealsCreateCampMealResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/meals',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Camp Meal
+ */
+export const mealsApiMealsDeleteCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiMealsDeleteCampMealData, ThrowOnError>) => (options.client ?? client).delete<MealsApiMealsDeleteCampMealResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/meals/{meal_id}',
+    ...options
+});
+
+/**
+ * Update Camp Meal
+ */
+export const mealsApiMealsUpdateCampMeal = <ThrowOnError extends boolean = false>(options: Options<MealsApiMealsUpdateCampMealData, ThrowOnError>) => (options.client ?? client).put<MealsApiMealsUpdateCampMealResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/meals/{meal_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Toggle Camp Meal Done
+ */
+export const mealsApiMealsToggleCampMealDone = <ThrowOnError extends boolean = false>(options: Options<MealsApiMealsToggleCampMealDoneData, ThrowOnError>) => (options.client ?? client).put<MealsApiMealsToggleCampMealDoneResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/meals/{meal_id}/toggle-done',
+    ...options
+});
+
+/**
  * Add Manual Shopping Item
  */
-export const mealsApiAddManualShoppingItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiAddManualShoppingItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiAddManualShoppingItemResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingAddManualShoppingItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingAddManualShoppingItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiShoppingAddManualShoppingItemResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -622,7 +596,7 @@ export const mealsApiAddManualShoppingItem = <ThrowOnError extends boolean = fal
 /**
  * Generate Shopping List
  */
-export const mealsApiGenerateShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiGenerateShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiGenerateShoppingListResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingGenerateShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingGenerateShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiShoppingGenerateShoppingListResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -639,7 +613,7 @@ export const mealsApiGenerateShoppingList = <ThrowOnError extends boolean = fals
 /**
  * Move General Items To Shopping List
  */
-export const mealsApiMoveGeneralItemsToShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiMoveGeneralItemsToShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiMoveGeneralItemsToShoppingListResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingMoveGeneralItemsToShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingMoveGeneralItemsToShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiShoppingMoveGeneralItemsToShoppingListResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -652,7 +626,7 @@ export const mealsApiMoveGeneralItemsToShoppingList = <ThrowOnError extends bool
 /**
  * Delete Shopping List
  */
-export const mealsApiDeleteShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiDeleteShoppingListData, ThrowOnError>) => (options.client ?? client).delete<MealsApiDeleteShoppingListResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingDeleteShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingDeleteShoppingListData, ThrowOnError>) => (options.client ?? client).delete<MealsApiShoppingDeleteShoppingListResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -665,7 +639,7 @@ export const mealsApiDeleteShoppingList = <ThrowOnError extends boolean = false>
 /**
  * Get Shopping List
  */
-export const mealsApiGetShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetShoppingListResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingGetShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingGetShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiShoppingGetShoppingListResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -678,7 +652,7 @@ export const mealsApiGetShoppingList = <ThrowOnError extends boolean = false>(op
 /**
  * Export Shopping List
  */
-export const mealsApiExportShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiExportShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiExportShoppingListResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingExportShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingExportShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiShoppingExportShoppingListResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -691,7 +665,7 @@ export const mealsApiExportShoppingList = <ThrowOnError extends boolean = false>
 /**
  * List Camp Shopping Lists
  */
-export const mealsApiListCampShoppingLists = <ThrowOnError extends boolean = false>(options: Options<MealsApiListCampShoppingListsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListCampShoppingListsResponses, unknown, ThrowOnError>({
+export const mealsApiShoppingListCampShoppingLists = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingListCampShoppingListsData, ThrowOnError>) => (options.client ?? client).get<MealsApiShoppingListCampShoppingListsResponses, unknown, ThrowOnError>({
     security: [{
             in: 'cookie',
             name: 'sessionid',
@@ -704,17 +678,43 @@ export const mealsApiListCampShoppingLists = <ThrowOnError extends boolean = fal
 /**
  * Get Shared Shopping List
  */
-export const mealsApiGetSharedShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetSharedShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetSharedShoppingListResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}', ...options });
+export const mealsApiShoppingGetSharedShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingGetSharedShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiShoppingGetSharedShoppingListResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}', ...options });
 
 /**
  * Export Shared Shopping List
  */
-export const mealsApiExportSharedShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiExportSharedShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiExportSharedShoppingListResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}/export', ...options });
+export const mealsApiShoppingExportSharedShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingExportSharedShoppingListData, ThrowOnError>) => (options.client ?? client).get<MealsApiShoppingExportSharedShoppingListResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}/export', ...options });
 
 /**
  * Toggle Shared Shopping Item
  */
-export const mealsApiToggleSharedShoppingItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiToggleSharedShoppingItemData, ThrowOnError>) => (options.client ?? client).put<MealsApiToggleSharedShoppingItemResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}/items/{item_id}/toggle', ...options });
+export const mealsApiShoppingToggleSharedShoppingItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiShoppingToggleSharedShoppingItemData, ThrowOnError>) => (options.client ?? client).put<MealsApiShoppingToggleSharedShoppingItemResponses, unknown, ThrowOnError>({ url: '/api/meals/shared/shopping-lists/{token}/items/{item_id}/toggle', ...options });
+
+/**
+ * Get Inventory Status
+ */
+export const mealsApiInventoryGetInventoryStatus = <ThrowOnError extends boolean = false>(options: Options<MealsApiInventoryGetInventoryStatusData, ThrowOnError>) => (options.client ?? client).get<MealsApiInventoryGetInventoryStatusResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/inventory-status',
+    ...options
+});
+
+/**
+ * Export Inventory Excel
+ */
+export const mealsApiInventoryExportInventoryExcel = <ThrowOnError extends boolean = false>(options: Options<MealsApiInventoryExportInventoryExcelData, ThrowOnError>) => (options.client ?? client).get<MealsApiInventoryExportInventoryExcelResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'sessionid',
+            type: 'apiKey'
+        }],
+    url: '/api/meals/camps/{camp_id}/inventory-status/export',
+    ...options
+});
 
 /**
  * Get Texts

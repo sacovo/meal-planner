@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { mealsApiListRecipes, type RecipeSchema, type DietaryPreferenceSchema } from '../client'
+import { ref, watch, onMounted } from 'vue'
+import { type RecipeSchema, type DietaryPreferenceSchema } from '../client'
 import TagInput from './TagInput.vue'
 import { useI18n } from '../composables/useI18n'
+import { useRecipeList } from '../composables/useRecipeList'
 
 const { t } = useI18n()
 
@@ -19,57 +20,23 @@ const emit = defineEmits<{
   (e: 'dragstart', event: DragEvent, recipe: RecipeSchema): void
 }>()
 
-const recipes = ref<RecipeSchema[]>([])
 const selectedTags = ref<string[]>([])
 const selectedPreferenceId = ref<number | null>(null)
-const currentPage = ref(1)
-const totalCount = ref(0)
-const isLoading = ref(false)
+const searchQueryLocal = ref(props.searchQuery)
 
-async function fetchRecipes(reset = false) {
-  if (reset) {
-    currentPage.value = 1
-  }
-  isLoading.value = true
-  try {
-    const { data } = await mealsApiListRecipes({
-      query: {
-        page: currentPage.value,
-        q: props.searchQuery || undefined,
-        tags: selectedTags.value.length > 0 ? selectedTags.value.join(',') : undefined,
-        preference_id: selectedPreferenceId.value || undefined
-      }
-    })
-    if (data) {
-      if (reset) recipes.value = data.items
-      else recipes.value.push(...data.items)
-      totalCount.value = data.count
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
+watch(() => props.searchQuery, (v) => { searchQueryLocal.value = v })
 
-const hasMore = computed(() => recipes.value.length < totalCount.value)
-
-function loadMore() {
-  if (hasMore.value && !isLoading.value) {
-    currentPage.value++
-    fetchRecipes()
-  }
-}
-
-watch(() => props.searchQuery, () => {
-  fetchRecipes(true)
+const { recipes, isLoading, hasMore, fetchRecipes, loadMore } = useRecipeList({
+  searchQuery: searchQueryLocal,
+  selectedTags,
+  selectedPreferenceId,
+  autoWatch: false,
 })
 
-watch([selectedTags, selectedPreferenceId], () => {
-  fetchRecipes(true)
-})
+watch(() => props.searchQuery, () => fetchRecipes(true))
+watch([selectedTags, selectedPreferenceId], () => fetchRecipes(true))
 
-onMounted(() => {
-  fetchRecipes()
-})
+onMounted(() => fetchRecipes())
 
 function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   emit('dragstart', event, recipe)
@@ -115,13 +82,12 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
           </div>
         </div>
 
-        <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center" style="padding: 1rem;">
+        <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center p-4">
           {{ t('recipe.no_results') }}
         </div>
 
-        <div v-if="hasMore" class="flex justify-center" style="margin-top: 0.5rem; margin-bottom: 1rem;">
-          <button class="btn btn-secondary btn-sm" @click="loadMore" :disabled="isLoading"
-            style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+        <div v-if="hasMore" class="flex justify-center mt-2 mb-4">
+          <button class="btn btn-secondary btn-xs" @click="loadMore" :disabled="isLoading">
             {{ isLoading ? '...' : t('btn.search') }}
           </button>
         </div>
@@ -144,9 +110,7 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   overflow: visible;
 }
 
-.sidebar-collapsed {
-  /* Width is controlled by grid in parent but we set min-height etc if needed */
-}
+
 
 .toggle-sidebar-btn {
   position: absolute;

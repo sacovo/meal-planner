@@ -120,30 +120,30 @@ onMounted(fetchAccount)
 </script>
 
 <template>
-  <div v-if="!loading" class="flex-col gap-6" style="max-width: 600px; margin: 0 auto;">
+  <div v-if="!loading" class="account-page">
     <h1>{{ t('account.title') }}</h1>
 
     <div class="card flex-col gap-4">
       <h2>{{ t('account.profile') }}</h2>
       <form @submit.prevent="updateProfile" class="flex-col gap-4">
         <div>
-          <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('login.username') }}</label>
-          <input class="input" :value="account?.username" disabled style="background-color: var(--color-bg-mute);" />
+          <label>{{ t('login.username') }}</label>
+          <input class="input input-disabled" :value="account?.username" disabled />
         </div>
         <div class="flex gap-4">
-          <div style="flex: 1;">
-            <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('account.first_name') }}</label>
+          <div class="flex-1">
+            <label>{{ t('account.first_name') }}</label>
             <input class="input" v-model="first_name" type="text" />
           </div>
-          <div style="flex: 1;">
-            <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('account.last_name') }}</label>
+          <div class="flex-1">
+            <label>{{ t('account.last_name') }}</label>
             <input class="input" v-model="last_name" type="text" />
           </div>
         </div>
-        <div v-if="profileMsg.text" :style="{ color: `var(--color-${profileMsg.type})` }" style="font-size: 0.875rem;">
+        <div v-if="profileMsg.text" :style="{ color: `var(--color-${profileMsg.type})` }" class="text-sm">
           {{ profileMsg.text }}
         </div>
-        <button class="btn btn-primary" type="submit" style="align-self: flex-start;">{{ t('account.update_profile') }}</button>
+        <button class="btn btn-primary" type="submit">{{ t('account.update_profile') }}</button>
       </form>
     </div>
 
@@ -151,25 +151,39 @@ onMounted(fetchAccount)
       <h2>{{ t('account.change_password') }}</h2>
       <form @submit.prevent="changePassword" class="flex-col gap-4">
         <div>
-          <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('account.old_password') }}</label>
+          <label>{{ t('account.old_password') }}</label>
           <input class="input" v-model="old_password" type="password" required />
         </div>
         <div>
-          <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('account.new_password') }}</label>
+          <label>{{ t('account.new_password') }}</label>
           <input class="input" v-model="new_password" type="password" required />
         </div>
         <div>
-          <label class="flex" style="margin-bottom: 4px; font-weight: 500;">{{ t('account.confirm_password') }}</label>
+          <label>{{ t('account.confirm_password') }}</label>
           <input class="input" v-model="confirm_password" type="password" required />
         </div>
-        <div v-if="passwordMsg.text" :style="{ color: `var(--color-${passwordMsg.type})` }" style="font-size: 0.875rem;">
+        <div v-if="passwordMsg.text" :style="{ color: `var(--color-${passwordMsg.type})` }" class="text-sm">
           {{ passwordMsg.text }}
         </div>
-        <button class="btn btn-primary" type="submit" style="align-self: flex-start;">{{ t('account.change_password') }}</button>
+        <button class="btn btn-primary" type="submit">{{ t('account.change_password') }}</button>
       </form>
     </div>
   </div>
-  <div v-else class="flex items-center justify-center" style="min-height: 200px;">
+  <div v-else class="flex items-center justify-center py-8">
     {{ t('btn.loading') }}
   </div>
 </template>
+
+<style scoped>
+.account-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.input-disabled {
+  background-color: var(--color-bg-mute);
+}
+</style>

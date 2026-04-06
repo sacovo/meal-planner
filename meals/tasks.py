@@ -1,3 +1,5 @@
+"""Celery tasks for AI-powered recipe operations."""
+
 import json
 import os
 from enum import Enum
@@ -6,9 +8,7 @@ from celery import shared_task
 from google import genai
 from pydantic import BaseModel
 
-# Standard Models
-from meals.models import (Ingredient, IngredientUnitConversion, Recipe,
-                          RecipeIngredient)
+from meals.models import Ingredient, IngredientUnitConversion, Recipe
 
 
 class CategoryEnum(str, Enum):
@@ -129,59 +129,10 @@ class AIRecipeLayout(BaseModel):
     ingredients: list[AIRecipeIngredient]
 
 
-def internal_add_ingredient_to_recipe(recipe, ingredient_name, amount, unit):
-    ing_name = ingredient_name.strip()
-    unit_input = unit.lower().strip()
-    unit_map = {
-        "g": ("kg", 0.001),
-        "kg": ("kg", 1.0),
-        "ml": ("l", 0.001),
-        "dl": ("l", 0.1),
-        "l": ("l", 1.0),
-    }
-
-    ingredient = Ingredient.objects.filter(name__iexact=ing_name).first()
-    if not ingredient:
-        base_unit = unit_map.get(unit_input, (unit_input, 1.0))[0]
-        ingredient = Ingredient.objects.create(name=ing_name, base_unit=base_unit)
-        classify_ingredient.delay(ingredient.id, original_unit=unit_input)
-        if unit_input in unit_map and unit_input != base_unit:
-            IngredientUnitConversion.objects.create(
-                ingredient=ingredient,
-                unit_name=unit_input,
-                multiplier=unit_map[unit_input][1],
-            )
-    else:
-        if ingredient.base_unit != unit_input:
-            conv = IngredientUnitConversion.objects.filter(
-                ingredient=ingredient, unit_name=unit_input
-            ).first()
-            if not conv:
-                if (
-                    unit_input in unit_map
-                    and ingredient.base_unit == unit_map[unit_input][0]
-                ):
-                    IngredientUnitConversion.objects.create(
-                        ingredient=ingredient,
-                        unit_name=unit_input,
-                        multiplier=unit_map[unit_input][1],
-                    )
-                else:
-                    conv = IngredientUnitConversion.objects.create(
-                        ingredient=ingredient,
-                        unit_name=unit_input,
-                        multiplier=1.0,
-                        needs_review=True,
-                    )
-                    estimate_conversion_multiplier.delay(conv.id)
-
-    return RecipeIngredient.objects.create(
-        recipe=recipe, ingredient=ingredient, amount=amount, unit=unit_input
-    )
-
-
 @shared_task
 def import_recipe_ai_task(recipe_id, raw_text):
+    from meals.services import add_ingredient_to_recipe
+
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
         return
@@ -220,7 +171,7 @@ def import_recipe_ai_task(recipe_id, raw_text):
         recipe.save()
 
         for ing_data in parsed.get("ingredients", []):
-            internal_add_ingredient_to_recipe(
+            add_ingredient_to_recipe(
                 recipe,
                 ing_data.get("name"),
                 ing_data.get("amount", 1),

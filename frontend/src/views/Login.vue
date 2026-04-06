@@ -25,7 +25,7 @@ async function handleLogin() {
       },
       body: formData
     })
-    
+
     if (!res.ok) {
       errorMsg.value = t('login.error')
     } else {
@@ -39,9 +39,9 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="flex items-center" style="justify-content: center; min-height: 50vh;">
-    <div class="card" style="width: 100%; max-width: 400px;">
-      <h2 style="text-align: center; margin-bottom: 2rem;">{{ t('login.title') }}</h2>
+  <div class="auth-page">
+    <div class="card auth-card">
+      <h2>{{ t('login.title') }}</h2>
       <form @submit.prevent="handleLogin" class="flex-col gap-4">
         <div>
           <label>{{ t('login.username') }}</label>
@@ -51,12 +51,12 @@ async function handleLogin() {
           <label>{{ t('login.password') }}</label>
           <input class="input" v-model="password" type="password" required />
         </div>
-        <div v-if="errorMsg" style="color: var(--color-danger); text-align: center;">
+        <div v-if="errorMsg" class="text-center alert-danger">
           {{ errorMsg }}
         </div>
-        <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 1rem;">{{ t('login.submit') }}</button>
-        <div style="text-align: center; margin-top: 1rem;">
-          <RouterLink to="/forgot-password" style="font-size: 0.875rem; color: var(--color-text-mute);">{{ t('login.forgot_password') }}</RouterLink>
+        <button class="btn btn-primary btn-block mt-4" type="submit">{{ t('login.submit') }}</button>
+        <div class="text-center mt-4">
+          <RouterLink to="/forgot-password" class="text-mute text-sm">{{ t('login.forgot_password') }}</RouterLink>
         </div>
       </form>
     </div>

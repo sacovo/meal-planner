@@ -61,6 +61,20 @@ export type AccountResponse = {
 };
 
 /**
+ * CurrentUserStatusSchema
+ */
+export type CurrentUserStatusSchema = {
+    /**
+     * Is Logged In
+     */
+    is_logged_in: boolean;
+    /**
+     * Username
+     */
+    username: string | null;
+};
+
+/**
  * CampSchema
  */
 export type CampSchema = {
@@ -151,70 +165,47 @@ export type CollaboratorInviteSchema = {
 };
 
 /**
- * CurrentUserStatusSchema
+ * GeneralCampItemSchema
  */
-export type CurrentUserStatusSchema = {
+export type GeneralCampItemSchema = {
     /**
-     * Is Logged In
+     * ID
      */
-    is_logged_in: boolean;
-    /**
-     * Username
-     */
-    username: string | null;
-};
-
-/**
- * CampMealSchema
- */
-export type CampMealSchema = {
-    serves_preference?: DietaryPreferenceSchema | null;
-    /**
-     * Recipe Name
-     */
-    recipe_name?: string;
-    /**
-     * Recipe Default Portions
-     */
-    recipe_default_portions?: number;
-    /**
-     * Id
-     */
-    id?: string | null;
+    id?: number | null;
     /**
      * Camp
      */
     camp: string;
     /**
-     * Recipe
+     * Name
      */
-    recipe: string;
+    name: string;
     /**
-     * Meal Type
+     * Amount
      */
-    meal_type: string;
+    amount: string;
     /**
-     * Date
+     * Category
      */
-    date: string;
+    category?: string;
+};
+
+/**
+ * GeneralCampItemCreateSchema
+ */
+export type GeneralCampItemCreateSchema = {
     /**
-     * Override People Count
-     *
-     * Overrides camp's default count
+     * Name
      */
-    override_people_count?: number | null;
+    name: string;
     /**
-     * Leftovers Noted
-     *
-     * Note what was left over after meal
+     * Amount
      */
-    leftovers_noted?: string | null;
+    amount: string;
     /**
-     * Is Done
-     *
-     * Mark if this meal has been cooked/consumed
+     * Category
      */
-    is_done?: boolean;
+    category?: string;
 };
 
 /**
@@ -229,84 +220,6 @@ export type DietaryPreferenceSchema = {
      * Name
      */
     name: string;
-};
-
-/**
- * InventoryStatusSchema
- */
-export type InventoryStatusSchema = {
-    /**
-     * Ingredient Id
-     */
-    ingredient_id: string;
-    /**
-     * Ingredient Name
-     */
-    ingredient_name: string;
-    /**
-     * Category
-     */
-    category: string;
-    /**
-     * Unit
-     */
-    unit: string;
-    /**
-     * Quantity Bought
-     */
-    quantity_bought: number;
-    /**
-     * Quantity Required
-     */
-    quantity_required: number;
-    /**
-     * Balance
-     */
-    balance: number;
-};
-
-/**
- * IngredientSchema
- */
-export type IngredientSchema = {
-    /**
-     * Id
-     */
-    id?: string | null;
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Category
-     */
-    category?: string;
-    /**
-     * Base Unit
-     *
-     * e.g. grams, pieces, ml
-     */
-    base_unit: string;
-};
-
-/**
- * IngredientCreateSchema
- */
-export type IngredientCreateSchema = {
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Category
-     */
-    category?: string;
-    /**
-     * Base Unit
-     *
-     * e.g. grams, pieces, ml
-     */
-    base_unit: string;
 };
 
 /**
@@ -422,27 +335,51 @@ export type RecipeUpdateSchema = {
     /**
      * Name
      */
-    name?: string;
+    name?: string | null;
     /**
      * Description
      */
-    description?: string;
+    description?: string | null;
     /**
      * Instructions
      */
-    instructions?: string;
+    instructions?: string | null;
     /**
      * Default Portions
      */
-    default_portions?: number;
+    default_portions?: number | null;
     /**
      * Preference Ids
      */
-    preference_ids?: Array<number>;
+    preference_ids?: Array<number> | null;
     /**
      * Tags
      */
     tags?: Array<string>;
+};
+
+/**
+ * IngredientSchema
+ */
+export type IngredientSchema = {
+    /**
+     * Id
+     */
+    id?: string | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Category
+     */
+    category?: string;
+    /**
+     * Base Unit
+     *
+     * e.g. grams, pieces, ml
+     */
+    base_unit: string;
 };
 
 /**
@@ -497,6 +434,79 @@ export type RecipeIngredientUpdateSchema = {
 };
 
 /**
+ * IngredientCreateSchema
+ */
+export type IngredientCreateSchema = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Category
+     */
+    category?: string;
+    /**
+     * Base Unit
+     *
+     * e.g. grams, pieces, ml
+     */
+    base_unit: string;
+};
+
+/**
+ * CampMealSchema
+ */
+export type CampMealSchema = {
+    serves_preference?: DietaryPreferenceSchema | null;
+    /**
+     * Recipe Name
+     */
+    recipe_name?: string;
+    /**
+     * Recipe Default Portions
+     */
+    recipe_default_portions?: number;
+    /**
+     * Id
+     */
+    id?: string | null;
+    /**
+     * Camp
+     */
+    camp: string;
+    /**
+     * Recipe
+     */
+    recipe: string;
+    /**
+     * Meal Type
+     */
+    meal_type: string;
+    /**
+     * Date
+     */
+    date: string;
+    /**
+     * Override People Count
+     *
+     * Overrides camp's default count
+     */
+    override_people_count?: number | null;
+    /**
+     * Leftovers Noted
+     *
+     * Note what was left over after meal
+     */
+    leftovers_noted?: string | null;
+    /**
+     * Is Done
+     *
+     * Mark if this meal has been cooked/consumed
+     */
+    is_done?: boolean;
+};
+
+/**
  * CampMealCreateSchema
  */
 export type CampMealCreateSchema = {
@@ -534,50 +544,6 @@ export type CampMealUpdateSchema = {
      * Serves Preference Id
      */
     serves_preference_id?: number | null;
-};
-
-/**
- * GeneralCampItemSchema
- */
-export type GeneralCampItemSchema = {
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Camp
-     */
-    camp: string;
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Amount
-     */
-    amount: string;
-    /**
-     * Category
-     */
-    category?: string;
-};
-
-/**
- * GeneralCampItemCreateSchema
- */
-export type GeneralCampItemCreateSchema = {
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Amount
-     */
-    amount: string;
-    /**
-     * Category
-     */
-    category?: string;
 };
 
 /**
@@ -693,6 +659,40 @@ export type ShoppingListOverviewSchema = {
      * Included Meals
      */
     included_meals: Array<string>;
+};
+
+/**
+ * InventoryStatusSchema
+ */
+export type InventoryStatusSchema = {
+    /**
+     * Ingredient Id
+     */
+    ingredient_id: string;
+    /**
+     * Ingredient Name
+     */
+    ingredient_name: string;
+    /**
+     * Category
+     */
+    category: string;
+    /**
+     * Unit
+     */
+    unit: string;
+    /**
+     * Quantity Bought
+     */
+    quantity_bought: number;
+    /**
+     * Quantity Required
+     */
+    quantity_required: number;
+    /**
+     * Balance
+     */
+    balance: number;
 };
 
 export type CoreApiLoginViewData = {
@@ -898,14 +898,30 @@ export type CoreApiSetLanguageResponses = {
     200: unknown;
 };
 
-export type MealsApiListCampsData = {
+export type CoreApiGetCurrentUserStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/meals/auth/me';
+};
+
+export type CoreApiGetCurrentUserStatusResponses = {
+    /**
+     * OK
+     */
+    200: CurrentUserStatusSchema;
+};
+
+export type CoreApiGetCurrentUserStatusResponse = CoreApiGetCurrentUserStatusResponses[keyof CoreApiGetCurrentUserStatusResponses];
+
+export type MealsApiCampsListCampsData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/meals/camps';
 };
 
-export type MealsApiListCampsResponses = {
+export type MealsApiCampsListCampsResponses = {
     /**
      * Response
      *
@@ -914,25 +930,25 @@ export type MealsApiListCampsResponses = {
     200: Array<CampSchema>;
 };
 
-export type MealsApiListCampsResponse = MealsApiListCampsResponses[keyof MealsApiListCampsResponses];
+export type MealsApiCampsListCampsResponse = MealsApiCampsListCampsResponses[keyof MealsApiCampsListCampsResponses];
 
-export type MealsApiCreateCampData = {
+export type MealsApiCampsCreateCampData = {
     body: CampCreateSchema;
     path?: never;
     query?: never;
     url: '/api/meals/camps';
 };
 
-export type MealsApiCreateCampResponses = {
+export type MealsApiCampsCreateCampResponses = {
     /**
      * OK
      */
     200: CampSchema;
 };
 
-export type MealsApiCreateCampResponse = MealsApiCreateCampResponses[keyof MealsApiCreateCampResponses];
+export type MealsApiCampsCreateCampResponse = MealsApiCampsCreateCampResponses[keyof MealsApiCampsCreateCampResponses];
 
-export type MealsApiDeleteCampData = {
+export type MealsApiCampsDeleteCampData = {
     body?: never;
     path: {
         /**
@@ -944,14 +960,14 @@ export type MealsApiDeleteCampData = {
     url: '/api/meals/camps/{camp_id}';
 };
 
-export type MealsApiDeleteCampResponses = {
+export type MealsApiCampsDeleteCampResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiGetCampData = {
+export type MealsApiCampsGetCampData = {
     body?: never;
     path: {
         /**
@@ -963,16 +979,16 @@ export type MealsApiGetCampData = {
     url: '/api/meals/camps/{camp_id}';
 };
 
-export type MealsApiGetCampResponses = {
+export type MealsApiCampsGetCampResponses = {
     /**
      * OK
      */
     200: CampSchema;
 };
 
-export type MealsApiGetCampResponse = MealsApiGetCampResponses[keyof MealsApiGetCampResponses];
+export type MealsApiCampsGetCampResponse = MealsApiCampsGetCampResponses[keyof MealsApiCampsGetCampResponses];
 
-export type MealsApiUpdateCampData = {
+export type MealsApiCampsUpdateCampData = {
     body: CampUpdateSchema;
     path: {
         /**
@@ -984,16 +1000,16 @@ export type MealsApiUpdateCampData = {
     url: '/api/meals/camps/{camp_id}';
 };
 
-export type MealsApiUpdateCampResponses = {
+export type MealsApiCampsUpdateCampResponses = {
     /**
      * OK
      */
     200: CampSchema;
 };
 
-export type MealsApiUpdateCampResponse = MealsApiUpdateCampResponses[keyof MealsApiUpdateCampResponses];
+export type MealsApiCampsUpdateCampResponse = MealsApiCampsUpdateCampResponses[keyof MealsApiCampsUpdateCampResponses];
 
-export type MealsApiInviteCollaboratorData = {
+export type MealsApiCampsInviteCollaboratorData = {
     body: CollaboratorInviteSchema;
     path: {
         /**
@@ -1005,16 +1021,16 @@ export type MealsApiInviteCollaboratorData = {
     url: '/api/meals/camps/{camp_id}/collaborators';
 };
 
-export type MealsApiInviteCollaboratorResponses = {
+export type MealsApiCampsInviteCollaboratorResponses = {
     /**
      * OK
      */
     200: CampSchema;
 };
 
-export type MealsApiInviteCollaboratorResponse = MealsApiInviteCollaboratorResponses[keyof MealsApiInviteCollaboratorResponses];
+export type MealsApiCampsInviteCollaboratorResponse = MealsApiCampsInviteCollaboratorResponses[keyof MealsApiCampsInviteCollaboratorResponses];
 
-export type MealsApiRemoveCollaboratorData = {
+export type MealsApiCampsRemoveCollaboratorData = {
     body?: never;
     path: {
         /**
@@ -1030,55 +1046,14 @@ export type MealsApiRemoveCollaboratorData = {
     url: '/api/meals/camps/{camp_id}/collaborators/{username}';
 };
 
-export type MealsApiRemoveCollaboratorResponses = {
+export type MealsApiCampsRemoveCollaboratorResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiGetCurrentUserStatusData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/meals/auth/me';
-};
-
-export type MealsApiGetCurrentUserStatusResponses = {
-    /**
-     * OK
-     */
-    200: CurrentUserStatusSchema;
-};
-
-export type MealsApiGetCurrentUserStatusResponse = MealsApiGetCurrentUserStatusResponses[keyof MealsApiGetCurrentUserStatusResponses];
-
-export type MealsApiToggleCampMealDoneData = {
-    body?: never;
-    path: {
-        /**
-         * Camp Id
-         */
-        camp_id: string;
-        /**
-         * Meal Id
-         */
-        meal_id: string;
-    };
-    query?: never;
-    url: '/api/meals/camps/{camp_id}/meals/{meal_id}/toggle-done';
-};
-
-export type MealsApiToggleCampMealDoneResponses = {
-    /**
-     * OK
-     */
-    200: CampMealSchema;
-};
-
-export type MealsApiToggleCampMealDoneResponse = MealsApiToggleCampMealDoneResponses[keyof MealsApiToggleCampMealDoneResponses];
-
-export type MealsApiGetInventoryStatusData = {
+export type MealsApiCampsListCampGeneralItemsData = {
     body?: never;
     path: {
         /**
@@ -1087,22 +1062,22 @@ export type MealsApiGetInventoryStatusData = {
         camp_id: string;
     };
     query?: never;
-    url: '/api/meals/camps/{camp_id}/inventory-status';
+    url: '/api/meals/camps/{camp_id}/general-items';
 };
 
-export type MealsApiGetInventoryStatusResponses = {
+export type MealsApiCampsListCampGeneralItemsResponses = {
     /**
      * Response
      *
      * OK
      */
-    200: Array<InventoryStatusSchema>;
+    200: Array<GeneralCampItemSchema>;
 };
 
-export type MealsApiGetInventoryStatusResponse = MealsApiGetInventoryStatusResponses[keyof MealsApiGetInventoryStatusResponses];
+export type MealsApiCampsListCampGeneralItemsResponse = MealsApiCampsListCampGeneralItemsResponses[keyof MealsApiCampsListCampGeneralItemsResponses];
 
-export type MealsApiExportInventoryExcelData = {
-    body?: never;
+export type MealsApiCampsCreateCampGeneralItemData = {
+    body: GeneralCampItemCreateSchema;
     path: {
         /**
          * Camp Id
@@ -1110,92 +1085,42 @@ export type MealsApiExportInventoryExcelData = {
         camp_id: string;
     };
     query?: never;
-    url: '/api/meals/camps/{camp_id}/inventory-status/export';
+    url: '/api/meals/camps/{camp_id}/general-items';
 };
 
-export type MealsApiExportInventoryExcelResponses = {
+export type MealsApiCampsCreateCampGeneralItemResponses = {
+    /**
+     * OK
+     */
+    200: GeneralCampItemSchema;
+};
+
+export type MealsApiCampsCreateCampGeneralItemResponse = MealsApiCampsCreateCampGeneralItemResponses[keyof MealsApiCampsCreateCampGeneralItemResponses];
+
+export type MealsApiCampsDeleteCampGeneralItemData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+        /**
+         * Item Id
+         */
+        item_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/general-items/{item_id}';
+};
+
+export type MealsApiCampsDeleteCampGeneralItemResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiListIngredientsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Q
-         */
-        q?: string | null;
-    };
-    url: '/api/meals/ingredients';
-};
-
-export type MealsApiListIngredientsResponses = {
-    /**
-     * Response
-     *
-     * OK
-     */
-    200: Array<IngredientSchema>;
-};
-
-export type MealsApiListIngredientsResponse = MealsApiListIngredientsResponses[keyof MealsApiListIngredientsResponses];
-
-export type MealsApiCreateIngredientData = {
-    body: IngredientCreateSchema;
-    path?: never;
-    query?: never;
-    url: '/api/meals/ingredients';
-};
-
-export type MealsApiCreateIngredientResponses = {
-    /**
-     * OK
-     */
-    200: IngredientSchema;
-};
-
-export type MealsApiCreateIngredientResponse = MealsApiCreateIngredientResponses[keyof MealsApiCreateIngredientResponses];
-
-export type MealsApiListUnitsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/meals/units';
-};
-
-export type MealsApiListUnitsResponses = {
-    /**
-     * Response
-     *
-     * OK
-     */
-    200: Array<string>;
-};
-
-export type MealsApiListUnitsResponse = MealsApiListUnitsResponses[keyof MealsApiListUnitsResponses];
-
-export type MealsApiListTagsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/meals/tags';
-};
-
-export type MealsApiListTagsResponses = {
-    /**
-     * Response
-     *
-     * OK
-     */
-    200: Array<string>;
-};
-
-export type MealsApiListTagsResponse = MealsApiListTagsResponses[keyof MealsApiListTagsResponses];
-
-export type MealsApiListRecipesData = {
+export type MealsApiRecipesListRecipesData = {
     body?: never;
     path?: never;
     query?: {
@@ -1219,48 +1144,48 @@ export type MealsApiListRecipesData = {
     url: '/api/meals/recipes';
 };
 
-export type MealsApiListRecipesResponses = {
+export type MealsApiRecipesListRecipesResponses = {
     /**
      * OK
      */
     200: RecipePaginatedSchema;
 };
 
-export type MealsApiListRecipesResponse = MealsApiListRecipesResponses[keyof MealsApiListRecipesResponses];
+export type MealsApiRecipesListRecipesResponse = MealsApiRecipesListRecipesResponses[keyof MealsApiRecipesListRecipesResponses];
 
-export type MealsApiCreateRecipeData = {
+export type MealsApiRecipesCreateRecipeData = {
     body: RecipeCreateSchema;
     path?: never;
     query?: never;
     url: '/api/meals/recipes';
 };
 
-export type MealsApiCreateRecipeResponses = {
+export type MealsApiRecipesCreateRecipeResponses = {
     /**
      * OK
      */
     200: RecipeSchema;
 };
 
-export type MealsApiCreateRecipeResponse = MealsApiCreateRecipeResponses[keyof MealsApiCreateRecipeResponses];
+export type MealsApiRecipesCreateRecipeResponse = MealsApiRecipesCreateRecipeResponses[keyof MealsApiRecipesCreateRecipeResponses];
 
-export type MealsApiImportRecipeData = {
+export type MealsApiRecipesImportRecipeData = {
     body: RecipeImportRequestSchema;
     path?: never;
     query?: never;
     url: '/api/meals/recipes/import';
 };
 
-export type MealsApiImportRecipeResponses = {
+export type MealsApiRecipesImportRecipeResponses = {
     /**
      * OK
      */
     200: RecipeSchema;
 };
 
-export type MealsApiImportRecipeResponse = MealsApiImportRecipeResponses[keyof MealsApiImportRecipeResponses];
+export type MealsApiRecipesImportRecipeResponse = MealsApiRecipesImportRecipeResponses[keyof MealsApiRecipesImportRecipeResponses];
 
-export type MealsApiGetRecipeData = {
+export type MealsApiRecipesGetRecipeData = {
     body?: never;
     path: {
         /**
@@ -1272,16 +1197,16 @@ export type MealsApiGetRecipeData = {
     url: '/api/meals/recipes/{recipe_id}';
 };
 
-export type MealsApiGetRecipeResponses = {
+export type MealsApiRecipesGetRecipeResponses = {
     /**
      * OK
      */
     200: RecipeSchema;
 };
 
-export type MealsApiGetRecipeResponse = MealsApiGetRecipeResponses[keyof MealsApiGetRecipeResponses];
+export type MealsApiRecipesGetRecipeResponse = MealsApiRecipesGetRecipeResponses[keyof MealsApiRecipesGetRecipeResponses];
 
-export type MealsApiUpdateRecipeData = {
+export type MealsApiRecipesUpdateRecipeData = {
     body: RecipeUpdateSchema;
     path: {
         /**
@@ -1293,16 +1218,16 @@ export type MealsApiUpdateRecipeData = {
     url: '/api/meals/recipes/{recipe_id}';
 };
 
-export type MealsApiUpdateRecipeResponses = {
+export type MealsApiRecipesUpdateRecipeResponses = {
     /**
      * OK
      */
     200: RecipeSchema;
 };
 
-export type MealsApiUpdateRecipeResponse = MealsApiUpdateRecipeResponses[keyof MealsApiUpdateRecipeResponses];
+export type MealsApiRecipesUpdateRecipeResponse = MealsApiRecipesUpdateRecipeResponses[keyof MealsApiRecipesUpdateRecipeResponses];
 
-export type MealsApiListRecipeIngredientsData = {
+export type MealsApiRecipesListRecipeIngredientsData = {
     body?: never;
     path: {
         /**
@@ -1314,7 +1239,7 @@ export type MealsApiListRecipeIngredientsData = {
     url: '/api/meals/recipes/{recipe_id}/ingredients';
 };
 
-export type MealsApiListRecipeIngredientsResponses = {
+export type MealsApiRecipesListRecipeIngredientsResponses = {
     /**
      * Response
      *
@@ -1323,9 +1248,9 @@ export type MealsApiListRecipeIngredientsResponses = {
     200: Array<RecipeIngredientSchema>;
 };
 
-export type MealsApiListRecipeIngredientsResponse = MealsApiListRecipeIngredientsResponses[keyof MealsApiListRecipeIngredientsResponses];
+export type MealsApiRecipesListRecipeIngredientsResponse = MealsApiRecipesListRecipeIngredientsResponses[keyof MealsApiRecipesListRecipeIngredientsResponses];
 
-export type MealsApiAddRecipeIngredientData = {
+export type MealsApiRecipesAddRecipeIngredientData = {
     body: RecipeIngredientCreateOrMapSchema;
     path: {
         /**
@@ -1337,16 +1262,16 @@ export type MealsApiAddRecipeIngredientData = {
     url: '/api/meals/recipes/{recipe_id}/ingredients';
 };
 
-export type MealsApiAddRecipeIngredientResponses = {
+export type MealsApiRecipesAddRecipeIngredientResponses = {
     /**
      * OK
      */
     200: RecipeIngredientSchema;
 };
 
-export type MealsApiAddRecipeIngredientResponse = MealsApiAddRecipeIngredientResponses[keyof MealsApiAddRecipeIngredientResponses];
+export type MealsApiRecipesAddRecipeIngredientResponse = MealsApiRecipesAddRecipeIngredientResponses[keyof MealsApiRecipesAddRecipeIngredientResponses];
 
-export type MealsApiDeleteRecipeIngredientData = {
+export type MealsApiRecipesDeleteRecipeIngredientData = {
     body?: never;
     path: {
         /**
@@ -1362,14 +1287,14 @@ export type MealsApiDeleteRecipeIngredientData = {
     url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}';
 };
 
-export type MealsApiDeleteRecipeIngredientResponses = {
+export type MealsApiRecipesDeleteRecipeIngredientResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiUpdateRecipeIngredientData = {
+export type MealsApiRecipesUpdateRecipeIngredientData = {
     body: RecipeIngredientUpdateSchema;
     path: {
         /**
@@ -1385,16 +1310,16 @@ export type MealsApiUpdateRecipeIngredientData = {
     url: '/api/meals/recipes/{recipe_id}/ingredients/{ingredient_id}';
 };
 
-export type MealsApiUpdateRecipeIngredientResponses = {
+export type MealsApiRecipesUpdateRecipeIngredientResponses = {
     /**
      * OK
      */
     200: RecipeIngredientSchema;
 };
 
-export type MealsApiUpdateRecipeIngredientResponse = MealsApiUpdateRecipeIngredientResponses[keyof MealsApiUpdateRecipeIngredientResponses];
+export type MealsApiRecipesUpdateRecipeIngredientResponse = MealsApiRecipesUpdateRecipeIngredientResponses[keyof MealsApiRecipesUpdateRecipeIngredientResponses];
 
-export type MealsApiInviteRecipeCollaboratorData = {
+export type MealsApiRecipesInviteRecipeCollaboratorData = {
     body: CollaboratorInviteSchema;
     path: {
         /**
@@ -1406,16 +1331,16 @@ export type MealsApiInviteRecipeCollaboratorData = {
     url: '/api/meals/recipes/{recipe_id}/collaborators';
 };
 
-export type MealsApiInviteRecipeCollaboratorResponses = {
+export type MealsApiRecipesInviteRecipeCollaboratorResponses = {
     /**
      * OK
      */
     200: RecipeSchema;
 };
 
-export type MealsApiInviteRecipeCollaboratorResponse = MealsApiInviteRecipeCollaboratorResponses[keyof MealsApiInviteRecipeCollaboratorResponses];
+export type MealsApiRecipesInviteRecipeCollaboratorResponse = MealsApiRecipesInviteRecipeCollaboratorResponses[keyof MealsApiRecipesInviteRecipeCollaboratorResponses];
 
-export type MealsApiRemoveRecipeCollaboratorData = {
+export type MealsApiRecipesRemoveRecipeCollaboratorData = {
     body?: never;
     path: {
         /**
@@ -1431,21 +1356,21 @@ export type MealsApiRemoveRecipeCollaboratorData = {
     url: '/api/meals/recipes/{recipe_id}/collaborators/{username}';
 };
 
-export type MealsApiRemoveRecipeCollaboratorResponses = {
+export type MealsApiRecipesRemoveRecipeCollaboratorResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiListPreferencesData = {
+export type MealsApiRecipesListPreferencesData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/meals/preferences';
 };
 
-export type MealsApiListPreferencesResponses = {
+export type MealsApiRecipesListPreferencesResponses = {
     /**
      * Response
      *
@@ -1454,9 +1379,84 @@ export type MealsApiListPreferencesResponses = {
     200: Array<DietaryPreferenceSchema>;
 };
 
-export type MealsApiListPreferencesResponse = MealsApiListPreferencesResponses[keyof MealsApiListPreferencesResponses];
+export type MealsApiRecipesListPreferencesResponse = MealsApiRecipesListPreferencesResponses[keyof MealsApiRecipesListPreferencesResponses];
 
-export type MealsApiListCampMealsData = {
+export type MealsApiIngredientsListIngredientsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Q
+         */
+        q?: string | null;
+    };
+    url: '/api/meals/ingredients';
+};
+
+export type MealsApiIngredientsListIngredientsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<IngredientSchema>;
+};
+
+export type MealsApiIngredientsListIngredientsResponse = MealsApiIngredientsListIngredientsResponses[keyof MealsApiIngredientsListIngredientsResponses];
+
+export type MealsApiIngredientsCreateIngredientData = {
+    body: IngredientCreateSchema;
+    path?: never;
+    query?: never;
+    url: '/api/meals/ingredients';
+};
+
+export type MealsApiIngredientsCreateIngredientResponses = {
+    /**
+     * OK
+     */
+    200: IngredientSchema;
+};
+
+export type MealsApiIngredientsCreateIngredientResponse = MealsApiIngredientsCreateIngredientResponses[keyof MealsApiIngredientsCreateIngredientResponses];
+
+export type MealsApiIngredientsListUnitsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/meals/units';
+};
+
+export type MealsApiIngredientsListUnitsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type MealsApiIngredientsListUnitsResponse = MealsApiIngredientsListUnitsResponses[keyof MealsApiIngredientsListUnitsResponses];
+
+export type MealsApiIngredientsListTagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/meals/tags';
+};
+
+export type MealsApiIngredientsListTagsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type MealsApiIngredientsListTagsResponse = MealsApiIngredientsListTagsResponses[keyof MealsApiIngredientsListTagsResponses];
+
+export type MealsApiMealsListCampMealsData = {
     body?: never;
     path: {
         /**
@@ -1468,7 +1468,7 @@ export type MealsApiListCampMealsData = {
     url: '/api/meals/camps/{camp_id}/meals';
 };
 
-export type MealsApiListCampMealsResponses = {
+export type MealsApiMealsListCampMealsResponses = {
     /**
      * Response
      *
@@ -1477,9 +1477,9 @@ export type MealsApiListCampMealsResponses = {
     200: Array<CampMealSchema>;
 };
 
-export type MealsApiListCampMealsResponse = MealsApiListCampMealsResponses[keyof MealsApiListCampMealsResponses];
+export type MealsApiMealsListCampMealsResponse = MealsApiMealsListCampMealsResponses[keyof MealsApiMealsListCampMealsResponses];
 
-export type MealsApiCreateCampMealData = {
+export type MealsApiMealsCreateCampMealData = {
     body: CampMealCreateSchema;
     path: {
         /**
@@ -1491,16 +1491,16 @@ export type MealsApiCreateCampMealData = {
     url: '/api/meals/camps/{camp_id}/meals';
 };
 
-export type MealsApiCreateCampMealResponses = {
+export type MealsApiMealsCreateCampMealResponses = {
     /**
      * OK
      */
     200: CampMealSchema;
 };
 
-export type MealsApiCreateCampMealResponse = MealsApiCreateCampMealResponses[keyof MealsApiCreateCampMealResponses];
+export type MealsApiMealsCreateCampMealResponse = MealsApiMealsCreateCampMealResponses[keyof MealsApiMealsCreateCampMealResponses];
 
-export type MealsApiDeleteCampMealData = {
+export type MealsApiMealsDeleteCampMealData = {
     body?: never;
     path: {
         /**
@@ -1516,14 +1516,14 @@ export type MealsApiDeleteCampMealData = {
     url: '/api/meals/camps/{camp_id}/meals/{meal_id}';
 };
 
-export type MealsApiDeleteCampMealResponses = {
+export type MealsApiMealsDeleteCampMealResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiUpdateCampMealData = {
+export type MealsApiMealsUpdateCampMealData = {
     body: CampMealUpdateSchema;
     path: {
         /**
@@ -1539,60 +1539,16 @@ export type MealsApiUpdateCampMealData = {
     url: '/api/meals/camps/{camp_id}/meals/{meal_id}';
 };
 
-export type MealsApiUpdateCampMealResponses = {
+export type MealsApiMealsUpdateCampMealResponses = {
     /**
      * OK
      */
     200: CampMealSchema;
 };
 
-export type MealsApiUpdateCampMealResponse = MealsApiUpdateCampMealResponses[keyof MealsApiUpdateCampMealResponses];
+export type MealsApiMealsUpdateCampMealResponse = MealsApiMealsUpdateCampMealResponses[keyof MealsApiMealsUpdateCampMealResponses];
 
-export type MealsApiListCampGeneralItemsData = {
-    body?: never;
-    path: {
-        /**
-         * Camp Id
-         */
-        camp_id: string;
-    };
-    query?: never;
-    url: '/api/meals/camps/{camp_id}/general-items';
-};
-
-export type MealsApiListCampGeneralItemsResponses = {
-    /**
-     * Response
-     *
-     * OK
-     */
-    200: Array<GeneralCampItemSchema>;
-};
-
-export type MealsApiListCampGeneralItemsResponse = MealsApiListCampGeneralItemsResponses[keyof MealsApiListCampGeneralItemsResponses];
-
-export type MealsApiCreateCampGeneralItemData = {
-    body: GeneralCampItemCreateSchema;
-    path: {
-        /**
-         * Camp Id
-         */
-        camp_id: string;
-    };
-    query?: never;
-    url: '/api/meals/camps/{camp_id}/general-items';
-};
-
-export type MealsApiCreateCampGeneralItemResponses = {
-    /**
-     * OK
-     */
-    200: GeneralCampItemSchema;
-};
-
-export type MealsApiCreateCampGeneralItemResponse = MealsApiCreateCampGeneralItemResponses[keyof MealsApiCreateCampGeneralItemResponses];
-
-export type MealsApiDeleteCampGeneralItemData = {
+export type MealsApiMealsToggleCampMealDoneData = {
     body?: never;
     path: {
         /**
@@ -1600,22 +1556,24 @@ export type MealsApiDeleteCampGeneralItemData = {
          */
         camp_id: string;
         /**
-         * Item Id
+         * Meal Id
          */
-        item_id: string;
+        meal_id: string;
     };
     query?: never;
-    url: '/api/meals/camps/{camp_id}/general-items/{item_id}';
+    url: '/api/meals/camps/{camp_id}/meals/{meal_id}/toggle-done';
 };
 
-export type MealsApiDeleteCampGeneralItemResponses = {
+export type MealsApiMealsToggleCampMealDoneResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: CampMealSchema;
 };
 
-export type MealsApiAddManualShoppingItemData = {
+export type MealsApiMealsToggleCampMealDoneResponse = MealsApiMealsToggleCampMealDoneResponses[keyof MealsApiMealsToggleCampMealDoneResponses];
+
+export type MealsApiShoppingAddManualShoppingItemData = {
     body: ShoppingListManualItemSchema;
     path: {
         /**
@@ -1627,16 +1585,16 @@ export type MealsApiAddManualShoppingItemData = {
     url: '/api/meals/camps/{camp_id}/shopping-lists/add-manual-item';
 };
 
-export type MealsApiAddManualShoppingItemResponses = {
+export type MealsApiShoppingAddManualShoppingItemResponses = {
     /**
      * OK
      */
     200: ShoppingListItemSchema;
 };
 
-export type MealsApiAddManualShoppingItemResponse = MealsApiAddManualShoppingItemResponses[keyof MealsApiAddManualShoppingItemResponses];
+export type MealsApiShoppingAddManualShoppingItemResponse = MealsApiShoppingAddManualShoppingItemResponses[keyof MealsApiShoppingAddManualShoppingItemResponses];
 
-export type MealsApiGenerateShoppingListData = {
+export type MealsApiShoppingGenerateShoppingListData = {
     body: ShoppingListGenerateRequestSchema;
     path: {
         /**
@@ -1648,16 +1606,16 @@ export type MealsApiGenerateShoppingListData = {
     url: '/api/meals/camps/{camp_id}/shopping-list/generate';
 };
 
-export type MealsApiGenerateShoppingListResponses = {
+export type MealsApiShoppingGenerateShoppingListResponses = {
     /**
      * OK
      */
     200: ShoppingListSchema;
 };
 
-export type MealsApiGenerateShoppingListResponse = MealsApiGenerateShoppingListResponses[keyof MealsApiGenerateShoppingListResponses];
+export type MealsApiShoppingGenerateShoppingListResponse = MealsApiShoppingGenerateShoppingListResponses[keyof MealsApiShoppingGenerateShoppingListResponses];
 
-export type MealsApiMoveGeneralItemsToShoppingListData = {
+export type MealsApiShoppingMoveGeneralItemsToShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1673,16 +1631,16 @@ export type MealsApiMoveGeneralItemsToShoppingListData = {
     url: '/api/meals/camps/{camp_id}/shopping-lists/{list_id}/move-general-items';
 };
 
-export type MealsApiMoveGeneralItemsToShoppingListResponses = {
+export type MealsApiShoppingMoveGeneralItemsToShoppingListResponses = {
     /**
      * OK
      */
     200: ShoppingListSchema;
 };
 
-export type MealsApiMoveGeneralItemsToShoppingListResponse = MealsApiMoveGeneralItemsToShoppingListResponses[keyof MealsApiMoveGeneralItemsToShoppingListResponses];
+export type MealsApiShoppingMoveGeneralItemsToShoppingListResponse = MealsApiShoppingMoveGeneralItemsToShoppingListResponses[keyof MealsApiShoppingMoveGeneralItemsToShoppingListResponses];
 
-export type MealsApiDeleteShoppingListData = {
+export type MealsApiShoppingDeleteShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1694,14 +1652,14 @@ export type MealsApiDeleteShoppingListData = {
     url: '/api/meals/shopping-lists/{list_id}';
 };
 
-export type MealsApiDeleteShoppingListResponses = {
+export type MealsApiShoppingDeleteShoppingListResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiGetShoppingListData = {
+export type MealsApiShoppingGetShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1713,16 +1671,16 @@ export type MealsApiGetShoppingListData = {
     url: '/api/meals/shopping-lists/{list_id}';
 };
 
-export type MealsApiGetShoppingListResponses = {
+export type MealsApiShoppingGetShoppingListResponses = {
     /**
      * OK
      */
     200: ShoppingListSchema;
 };
 
-export type MealsApiGetShoppingListResponse = MealsApiGetShoppingListResponses[keyof MealsApiGetShoppingListResponses];
+export type MealsApiShoppingGetShoppingListResponse = MealsApiShoppingGetShoppingListResponses[keyof MealsApiShoppingGetShoppingListResponses];
 
-export type MealsApiExportShoppingListData = {
+export type MealsApiShoppingExportShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1734,14 +1692,14 @@ export type MealsApiExportShoppingListData = {
     url: '/api/meals/shopping-lists/{list_id}/export';
 };
 
-export type MealsApiExportShoppingListResponses = {
+export type MealsApiShoppingExportShoppingListResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiListCampShoppingListsData = {
+export type MealsApiShoppingListCampShoppingListsData = {
     body?: never;
     path: {
         /**
@@ -1753,7 +1711,7 @@ export type MealsApiListCampShoppingListsData = {
     url: '/api/meals/camps/{camp_id}/shopping-lists';
 };
 
-export type MealsApiListCampShoppingListsResponses = {
+export type MealsApiShoppingListCampShoppingListsResponses = {
     /**
      * Response
      *
@@ -1762,9 +1720,9 @@ export type MealsApiListCampShoppingListsResponses = {
     200: Array<ShoppingListOverviewSchema>;
 };
 
-export type MealsApiListCampShoppingListsResponse = MealsApiListCampShoppingListsResponses[keyof MealsApiListCampShoppingListsResponses];
+export type MealsApiShoppingListCampShoppingListsResponse = MealsApiShoppingListCampShoppingListsResponses[keyof MealsApiShoppingListCampShoppingListsResponses];
 
-export type MealsApiGetSharedShoppingListData = {
+export type MealsApiShoppingGetSharedShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1776,16 +1734,16 @@ export type MealsApiGetSharedShoppingListData = {
     url: '/api/meals/shared/shopping-lists/{token}';
 };
 
-export type MealsApiGetSharedShoppingListResponses = {
+export type MealsApiShoppingGetSharedShoppingListResponses = {
     /**
      * OK
      */
     200: ShoppingListSchema;
 };
 
-export type MealsApiGetSharedShoppingListResponse = MealsApiGetSharedShoppingListResponses[keyof MealsApiGetSharedShoppingListResponses];
+export type MealsApiShoppingGetSharedShoppingListResponse = MealsApiShoppingGetSharedShoppingListResponses[keyof MealsApiShoppingGetSharedShoppingListResponses];
 
-export type MealsApiExportSharedShoppingListData = {
+export type MealsApiShoppingExportSharedShoppingListData = {
     body?: never;
     path: {
         /**
@@ -1797,14 +1755,14 @@ export type MealsApiExportSharedShoppingListData = {
     url: '/api/meals/shared/shopping-lists/{token}/export';
 };
 
-export type MealsApiExportSharedShoppingListResponses = {
+export type MealsApiShoppingExportSharedShoppingListResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type MealsApiToggleSharedShoppingItemData = {
+export type MealsApiShoppingToggleSharedShoppingItemData = {
     body?: never;
     path: {
         /**
@@ -1820,14 +1778,56 @@ export type MealsApiToggleSharedShoppingItemData = {
     url: '/api/meals/shared/shopping-lists/{token}/items/{item_id}/toggle';
 };
 
-export type MealsApiToggleSharedShoppingItemResponses = {
+export type MealsApiShoppingToggleSharedShoppingItemResponses = {
     /**
      * OK
      */
     200: ShoppingListItemSchema;
 };
 
-export type MealsApiToggleSharedShoppingItemResponse = MealsApiToggleSharedShoppingItemResponses[keyof MealsApiToggleSharedShoppingItemResponses];
+export type MealsApiShoppingToggleSharedShoppingItemResponse = MealsApiShoppingToggleSharedShoppingItemResponses[keyof MealsApiShoppingToggleSharedShoppingItemResponses];
+
+export type MealsApiInventoryGetInventoryStatusData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/inventory-status';
+};
+
+export type MealsApiInventoryGetInventoryStatusResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<InventoryStatusSchema>;
+};
+
+export type MealsApiInventoryGetInventoryStatusResponse = MealsApiInventoryGetInventoryStatusResponses[keyof MealsApiInventoryGetInventoryStatusResponses];
+
+export type MealsApiInventoryExportInventoryExcelData = {
+    body?: never;
+    path: {
+        /**
+         * Camp Id
+         */
+        camp_id: string;
+    };
+    query?: never;
+    url: '/api/meals/camps/{camp_id}/inventory-status/export';
+};
+
+export type MealsApiInventoryExportInventoryExcelResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type ContentApiGetTextsData = {
     body?: never;

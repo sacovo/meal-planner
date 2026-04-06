@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
-  mealsApiListRecipes,
-  mealsApiCreateRecipe,
-  mealsApiImportRecipe,
-  mealsApiListTags,
-  mealsApiListPreferences,
-  type RecipeSchema,
+  mealsApiRecipesCreateRecipe,
+  mealsApiRecipesImportRecipe,
+  mealsApiIngredientsListTags,
+  mealsApiRecipesListPreferences,
   type DietaryPreferenceSchema
 } from '../client'
 import { useRouter } from 'vue-router'
 import TagInput from '../components/TagInput.vue'
 import { useI18n } from '../composables/useI18n'
+import { useRecipeList } from '../composables/useRecipeList'
 
 const { t } = useI18n()
 const router = useRouter()
 
-const recipes = ref<RecipeSchema[]>([])
 const searchQuery = ref('')
 const selectedTags = ref<string[]>([])
 const selectedPreferenceId = ref<number | null>(null)
@@ -24,9 +22,11 @@ const selectedPreferenceId = ref<number | null>(null)
 const allTags = ref<string[]>([])
 const allPreferences = ref<DietaryPreferenceSchema[]>([])
 
-const totalCount = ref(0)
-const currentPage = ref(1)
-const isLoading = ref(false)
+const { recipes, isLoading, totalCount, hasMore, fetchRecipes, loadMore } = useRecipeList({
+  searchQuery,
+  selectedTags,
+  selectedPreferenceId,
+})
 
 const showCreateModal = ref(false)
 const newRecipe = ref({
@@ -41,57 +41,18 @@ const showImportModal = ref(false)
 const importText = ref('')
 const isImporting = ref(false)
 
-async function fetchData(reset = false) {
-  if (reset) {
-    currentPage.value = 1
-  }
-
-  isLoading.value = true
-  try {
-    const [recipesRes, tagsRes, prefsRes] = await Promise.all([
-      mealsApiListRecipes({
-        query: {
-          page: currentPage.value,
-          q: searchQuery.value || undefined,
-          tags: selectedTags.value.length > 0 ? selectedTags.value.join(',') : undefined,
-          preference_id: selectedPreferenceId.value || undefined
-        }
-      }),
-      mealsApiListTags(),
-      mealsApiListPreferences()
-    ])
-
-    if (recipesRes.data) {
-      if (reset) {
-        recipes.value = recipesRes.data.items
-      } else {
-        recipes.value.push(...recipesRes.data.items)
-      }
-      totalCount.value = recipesRes.data.count
-    }
-    if (tagsRes.data) allTags.value = tagsRes.data
-    if (prefsRes.data) allPreferences.value = prefsRes.data
-  } finally {
-    isLoading.value = false
-  }
+async function fetchMetadata() {
+  const [tagsRes, prefsRes] = await Promise.all([
+    mealsApiIngredientsListTags(),
+    mealsApiRecipesListPreferences()
+  ])
+  if (tagsRes.data) allTags.value = tagsRes.data
+  if (prefsRes.data) allPreferences.value = prefsRes.data
 }
-
-const hasMore = computed(() => recipes.value.length < totalCount.value)
-
-function loadMore() {
-  if (hasMore.value && !isLoading.value) {
-    currentPage.value++
-    fetchData()
-  }
-}
-
-watch([searchQuery, selectedTags, selectedPreferenceId], () => {
-  fetchData(true)
-})
 
 async function handleCreateRecipe() {
   if (!newRecipe.value.name) return
-  const { data } = await mealsApiCreateRecipe({ body: newRecipe.value })
+  const { data } = await mealsApiRecipesCreateRecipe({ body: newRecipe.value })
   if (data) {
     recipes.value.push(data)
     showCreateModal.value = false
@@ -103,7 +64,7 @@ async function handleImportRecipe() {
   if (!importText.value) return
   isImporting.value = true
   try {
-    const { data } = await mealsApiImportRecipe({ body: { raw_text: importText.value } })
+    const { data } = await mealsApiRecipesImportRecipe({ body: { raw_text: importText.value } })
     if (data) {
       showImportModal.value = false
       importText.value = ''
@@ -116,12 +77,15 @@ async function handleImportRecipe() {
   }
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchRecipes()
+  fetchMetadata()
+})
 </script>
 
 <template>
   <div>
-    <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
+    <div class="page-header mb-4">
       <h2>{{ t('recipe.title') }}</h2>
       <div class="flex gap-2">
         <button class="btn btn-secondary" @click="showImportModal = true">✨ {{ t('recipe.import') }}</button>
@@ -129,64 +93,59 @@ onMounted(fetchData)
       </div>
     </div>
 
-    <div class="flex gap-4 items-end filters-bar" style="margin-bottom: 2rem; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 250px;">
-        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('btn.search')
-          }}</label>
+    <div class="flex gap-4 items-end flex-wrap mb-8">
+      <div class="filter-field">
+        <label class="filter-label">{{ t('btn.search') }}</label>
         <input type="text" class="input" v-model="searchQuery" :placeholder="t('recipe.search_placeholder')" />
       </div>
 
-      <div style="flex: 1; min-width: 250px;">
-        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('recipe.tags')
-          }}</label>
+      <div class="filter-field">
+        <label class="filter-label">{{ t('recipe.tags') }}</label>
         <TagInput v-model="selectedTags" :suggestions="allTags" :placeholder="t('planner.filter')" />
       </div>
 
-      <div style="flex: 0.5; min-width: 150px;">
-        <label class="text-mute" style="font-size: 0.8rem; margin-bottom: 0.25rem; display: block;">{{ t('recipe.tags')
-          }}</label>
-        <select v-model="selectedPreferenceId" class="input" style="height: 42px;">
+      <div class="filter-field filter-field-narrow">
+        <label class="filter-label">{{ t('recipe.tags') }}</label>
+        <select v-model="selectedPreferenceId" class="input filter-select">
           <option :value="null">{{ t('planner.all_recipes') }}</option>
           <option v-for="p in allPreferences" :key="p.id!" :value="p.id">{{ p.name }}</option>
         </select>
       </div>
     </div>
 
-    <div class="flex-col gap-8" style="margin-top: 2rem;">
-      <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-        <router-link v-for="recipe in recipes" :key="recipe.id as string" :to="`/recipes/${recipe.id}`" class="card"
-          style="text-decoration: none; color: inherit; cursor: pointer;">
+    <div class="flex-col gap-8 mt-8">
+      <div class="grid-cards">
+        <router-link v-for="recipe in recipes" :key="recipe.id as string" :to="`/recipes/${recipe.id}`"
+          class="card recipe-card">
           <h3>{{ recipe.name }}</h3>
           <p class="text-mute">{{ recipe.default_portions }} {{ t('recipe.portions') }}</p>
-          <div class="flex gap-1 flex-wrap" style="margin-top: 0.5rem;"
-            v-if="recipe.preferences && recipe.preferences.length > 0">
-            <span v-for="pref in recipe.preferences" :key="pref.id!"
-              style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 2px 6px; border-radius: 4px;">
+          <div class="flex gap-1 flex-wrap mt-2" v-if="recipe.preferences && recipe.preferences.length > 0">
+            <span v-for="pref in recipe.preferences" :key="pref.id!" class="badge-primary">
               {{ pref.name }}
             </span>
           </div>
         </router-link>
       </div>
 
-      <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center" style="padding: 2rem;">
+      <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center py-8">
         {{ t('recipe.no_results') }}
       </div>
 
-      <div v-if="hasMore" class="flex justify-center" style="margin-top: 2rem;">
+      <div v-if="hasMore" class="flex justify-center mt-8">
         <button class="btn btn-secondary" @click="loadMore" :disabled="isLoading">
           {{ isLoading ? t('btn.loading') : t('btn.search') }}
         </button>
       </div>
-      <div v-else-if="recipes.length > 0" class="text-center text-mute" style="font-size: 0.85rem; margin-top: 2rem;">
+      <div v-else-if="recipes.length > 0" class="text-center text-mute text-sm mt-8">
         {{ totalCount }} {{ t('recipe.title') }}
       </div>
     </div>
 
-    <!-- Modal for Recipe -->
-    <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-      <div class="card modal-card">
+    <!-- Create Recipe Modal -->
+    <div v-if="showCreateModal" class="modal-backdrop" @click.self="showCreateModal = false">
+      <div class="modal modal-wide">
         <h3>{{ t('recipe.create') }}</h3>
-        <div class="flex-col gap-4" style="margin-top: 1rem;">
+        <div class="flex-col gap-4 mt-4">
           <div>
             <label>{{ t('camp.name_label') }}</label>
             <input class="input" v-model="newRecipe.name" placeholder="Spaghetti Bolognese" />
@@ -201,11 +160,11 @@ onMounted(fetchData)
           </div>
           <div>
             <label>{{ t('recipe.tags') }}</label>
-            <div style="margin-top: 0.25rem;">
+            <div class="mt-2">
               <TagInput v-model="newRecipe.tags" :suggestions="allTags" :placeholder="t('btn.add')" />
             </div>
           </div>
-          <div class="flex gap-2" style="margin-top: 1rem; justify-content: flex-end;">
+          <div class="flex gap-2 justify-end mt-4">
             <button class="btn btn-secondary" @click="showCreateModal = false">{{ t('btn.cancel') }}</button>
             <button class="btn btn-primary" @click="handleCreateRecipe">{{ t('btn.create') }}</button>
           </div>
@@ -213,17 +172,16 @@ onMounted(fetchData)
       </div>
     </div>
 
-    <!-- Modal for Magic Import -->
-    <div v-if="showImportModal" class="modal-overlay" @click.self="showImportModal = false">
-      <div class="card modal-card">
+    <!-- Magic Import Modal -->
+    <div v-if="showImportModal" class="modal-backdrop" @click.self="showImportModal = false">
+      <div class="modal modal-wide">
         <h3 class="flex items-center gap-2">✨ {{ t('recipe.import') }}</h3>
-        <p class="text-mute" style="margin-bottom: 1rem; font-size: 0.9rem;">
+        <p class="text-mute text-sm mb-4">
           {{ t('recipe.import_text') }}
         </p>
 
         <div v-if="!isImporting" class="flex-col gap-4">
-          <textarea class="input" v-model="importText" :placeholder="t('recipe.import_text')" rows="10"
-            style="font-family: inherit;"></textarea>
+          <textarea class="input" v-model="importText" :placeholder="t('recipe.import_text')" rows="10"></textarea>
           <div class="flex gap-2 justify-end">
             <button class="btn btn-secondary" @click="showImportModal = false">{{ t('btn.cancel') }}</button>
             <button class="btn btn-primary" @click="handleImportRecipe" :disabled="!importText">{{ t('recipe.import')
@@ -231,9 +189,9 @@ onMounted(fetchData)
           </div>
         </div>
 
-        <div v-else class="flex-col items-center justify-center" style="padding: 3rem 1rem;">
-          <div class="loader-spinner"></div>
-          <p style="margin-top: 1.5rem; font-weight: 500;">{{ t('recipe.importing') }}</p>
+        <div v-else class="flex-col items-center justify-center py-8">
+          <div class="spinner"></div>
+          <p class="mt-6 font-bold">{{ t('recipe.importing') }}</p>
         </div>
       </div>
     </div>
@@ -241,43 +199,29 @@ onMounted(fetchData)
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+.filter-field {
+  flex: 1;
+  min-width: 250px;
 }
 
-.modal-card {
-  width: 100%;
-  max-width: 600px;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+.filter-field-narrow {
+  flex: 0.5;
+  min-width: 150px;
 }
 
-.loader-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--color-bg-mute);
-  border-top: 4px solid var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.filter-label {
+  font-size: 0.8rem;
+  color: var(--color-text-mute);
+  margin-bottom: 0.25rem;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
+.filter-select {
+  height: 42px;
+}
 
-  100% {
-    transform: rotate(360deg);
-  }
+.recipe-card {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 </style>

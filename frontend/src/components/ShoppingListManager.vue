@@ -71,9 +71,10 @@ function groupMealsByDay(messages: string[]) {
               timeStyle: 'short'
             }) }}</strong>
             <div class="flex gap-2 list-actions">
-              <button class="btn btn-secondary action-btn" @click="$emit('open', sl.shared_token as string)">{{
+              <button class="btn btn-secondary action-btn" @click="$emit('open', sl.shared_token as string)"> ⚙️ {{
                 t('btn.edit') }}</button>
-              <button class="btn delete-btn" @click="$emit('delete', sl.id as string)">{{ t('btn.delete') }}</button>
+              <button class="btn delete-btn" @click="$emit('delete', sl.id as string)">🗑️ {{ t('btn.delete')
+              }}</button>
             </div>
           </div>
 
@@ -151,6 +152,12 @@ function groupMealsByDay(messages: string[]) {
   padding: 0.25rem 0.6rem;
   color: var(--color-danger);
   border: 1px solid var(--color-danger);
+  background-color: var(--color-bg-base);
+}
+
+.delete-btn:hover {
+  background-color: var(--color-danger);
+  color: var(--color-bg-base);
 }
 
 .meals-summary {

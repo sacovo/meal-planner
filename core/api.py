@@ -17,6 +17,7 @@ from ninja.security import django_auth
 from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 
 import content.api
+import core.admin  # noqa: F401 — registers User/Group/Invitation admin
 import meals.api
 
 api = NinjaAPI(
@@ -238,3 +239,15 @@ def set_language(request, language: str):
     response = HttpResponse()
     response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
     return response
+
+
+class CurrentUserStatusSchema(Schema):
+    is_logged_in: bool
+    username: str | None
+
+
+@api.get("/meals/auth/me", auth=None, response=CurrentUserStatusSchema)
+def get_current_user_status(request):
+    if request.user.is_authenticated:
+        return {"is_logged_in": True, "username": request.user.username}
+    return {"is_logged_in": False}

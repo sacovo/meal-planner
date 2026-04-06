@@ -31,29 +31,29 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="flex items-center justify-center" style="min-height: 50vh;">
-    <div class="card" style="width: 100%; max-width: 400px;">
-      <h2 style="text-align: center; margin-bottom: 2rem;">{{ t('forgot.title') }}</h2>
-      
+  <div class="auth-page">
+    <div class="card auth-card">
+      <h2>{{ t('forgot.title') }}</h2>
+
       <div v-if="!submitted">
         <form @submit.prevent="handleSubmit" class="flex-col gap-4">
           <div>
             <label>{{ t('forgot.email') }}</label>
             <input class="input" v-model="email" type="email" required />
           </div>
-          <div v-if="msg.text" :style="{ color: `var(--color-${msg.type})` }" style="text-align: center;">
+          <div v-if="msg.text" :style="{ color: `var(--color-${msg.type})` }" class="text-center">
             {{ msg.text }}
           </div>
-          <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 1rem;">{{ t('forgot.submit') }}</button>
+          <button class="btn btn-primary btn-block mt-4" type="submit">{{ t('forgot.submit') }}</button>
         </form>
       </div>
-      
+
       <div v-else class="flex-col gap-4 items-center">
-        <div style="font-size: 3rem;">✉️</div>
-        <p style="text-align: center; color: var(--color-text-mute);">
+        <div class="emoji-lg">✉️</div>
+        <p class="text-center text-mute">
           {{ msg.text }}
         </p>
-        <RouterLink to="/login" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">{{ t('forgot.back_to_login') }}</RouterLink>
+        <RouterLink to="/login" class="btn btn-secondary btn-block mt-4">{{ t('forgot.back_to_login') }}</RouterLink>
       </div>
     </div>
   </div>

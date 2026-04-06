@@ -21,12 +21,12 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * List Camps
  */
-export const mealsApiListCamps = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListCampsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListCampsResponses, unknown, ThrowOnError>({ url: '/api/camps', ...options });
+export const mealsApiCampsListCamps = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListCampsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListCampsResponses, unknown, ThrowOnError>({ url: '/api/camps', ...options });
 
 /**
  * Create Camp
  */
-export const mealsApiCreateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampResponses, unknown, ThrowOnError>({
+export const mealsApiCampsCreateCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampResponses, unknown, ThrowOnError>({
     url: '/api/camps',
     ...options,
     headers: {
@@ -38,17 +38,17 @@ export const mealsApiCreateCamp = <ThrowOnError extends boolean = false>(options
 /**
  * Get Camp
  */
-export const mealsApiGetCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetCampData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetCampResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}', ...options });
+export const mealsApiCampsGetCamp = <ThrowOnError extends boolean = false>(options: Options<MealsApiGetCampData, ThrowOnError>) => (options.client ?? client).get<MealsApiGetCampResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}', ...options });
 
 /**
  * List Ingredients
  */
-export const mealsApiListIngredients = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListIngredientsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListIngredientsResponses, unknown, ThrowOnError>({ url: '/api/ingredients', ...options });
+export const mealsApiIngredientsListIngredients = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListIngredientsData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListIngredientsResponses, unknown, ThrowOnError>({ url: '/api/ingredients', ...options });
 
 /**
  * Create Ingredient
  */
-export const mealsApiCreateIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateIngredientResponses, unknown, ThrowOnError>({
+export const mealsApiIngredientsCreateIngredient = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateIngredientData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateIngredientResponses, unknown, ThrowOnError>({
     url: '/api/ingredients',
     ...options,
     headers: {
@@ -60,12 +60,12 @@ export const mealsApiCreateIngredient = <ThrowOnError extends boolean = false>(o
 /**
  * List Recipes
  */
-export const mealsApiListRecipes = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListRecipesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListRecipesResponses, unknown, ThrowOnError>({ url: '/api/recipes', ...options });
+export const mealsApiRecipesListRecipes = <ThrowOnError extends boolean = false>(options?: Options<MealsApiListRecipesData, ThrowOnError>) => (options?.client ?? client).get<MealsApiListRecipesResponses, unknown, ThrowOnError>({ url: '/api/recipes', ...options });
 
 /**
  * Create Recipe
  */
-export const mealsApiCreateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateRecipeResponses, unknown, ThrowOnError>({
+export const mealsApiRecipesCreateRecipe = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateRecipeData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateRecipeResponses, unknown, ThrowOnError>({
     url: '/api/recipes',
     ...options,
     headers: {
@@ -77,12 +77,12 @@ export const mealsApiCreateRecipe = <ThrowOnError extends boolean = false>(optio
 /**
  * List Camp General Items
  */
-export const mealsApiListCampGeneralItems = <ThrowOnError extends boolean = false>(options: Options<MealsApiListCampGeneralItemsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListCampGeneralItemsResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}/general-items', ...options });
+export const mealsApiCampsListCampGeneralItems = <ThrowOnError extends boolean = false>(options: Options<MealsApiListCampGeneralItemsData, ThrowOnError>) => (options.client ?? client).get<MealsApiListCampGeneralItemsResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}/general-items', ...options });
 
 /**
  * Create Camp General Item
  */
-export const mealsApiCreateCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampGeneralItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampGeneralItemResponses, unknown, ThrowOnError>({
+export const mealsApiCampsCreateCampGeneralItem = <ThrowOnError extends boolean = false>(options: Options<MealsApiCreateCampGeneralItemData, ThrowOnError>) => (options.client ?? client).post<MealsApiCreateCampGeneralItemResponses, unknown, ThrowOnError>({
     url: '/api/camps/{camp_id}/general-items',
     ...options,
     headers: {
@@ -94,4 +94,4 @@ export const mealsApiCreateCampGeneralItem = <ThrowOnError extends boolean = fal
 /**
  * Generate Shopping List
  */
-export const mealsApiGenerateShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiGenerateShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiGenerateShoppingListResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}/shopping-list/generate', ...options });
+export const mealsApiShoppingGenerateShoppingList = <ThrowOnError extends boolean = false>(options: Options<MealsApiGenerateShoppingListData, ThrowOnError>) => (options.client ?? client).post<MealsApiGenerateShoppingListResponses, unknown, ThrowOnError>({ url: '/api/camps/{camp_id}/shopping-list/generate', ...options });

@@ -16,7 +16,7 @@ defineEmits<{
   <div class="card camp-notes">
     <div class="flex justify-between items-center header">
       <h3 class="title">{{ t('notes.title') }}</h3>
-      <button class="btn btn-secondary edit-btn" @click="$emit('edit')">{{ t('edit') }}</button>
+      <button class="btn btn-secondary edit-btn" @click="$emit('edit')">⚙️ {{ t('edit') }}</button>
     </div>
     <div class="text-mute notes-content">
       <MarkdownView v-if="notes" :content="notes" />

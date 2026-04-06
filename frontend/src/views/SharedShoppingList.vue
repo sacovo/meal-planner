@@ -2,15 +2,19 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  mealsApiGetSharedShoppingList,
-  mealsApiToggleSharedShoppingItem,
-  mealsApiGetCurrentUserStatus,
-  mealsApiExportSharedShoppingList,
+  mealsApiShoppingGetSharedShoppingList,
+  mealsApiShoppingToggleSharedShoppingItem,
+  coreApiGetCurrentUserStatus,
+  mealsApiShoppingExportSharedShoppingList,
   type ShoppingListSchema,
   type ShoppingListItemSchema
 } from '../client'
+import { useFileDownload } from '../composables/useFileDownload'
+import { useI18n } from '@/composables/useI18n'
 
 const route = useRoute()
+const { downloadBlob } = useFileDownload()
+const { t } = useI18n()
 const sharedToken = route.params.token as string
 
 const shoppingList = ref<ShoppingListSchema | null>(null)
@@ -18,7 +22,7 @@ let pollInterval: any = null
 const isLoggedIn = ref(false)
 
 async function checkAuth() {
-  const { data } = await mealsApiGetCurrentUserStatus()
+  const { data } = await coreApiGetCurrentUserStatus()
   if (data?.is_logged_in) {
     isLoggedIn.value = true
   }
@@ -30,7 +34,7 @@ function toggleCategory(cat: string) {
 }
 
 async function fetchList() {
-  const { data } = await mealsApiGetSharedShoppingList({
+  const { data } = await mealsApiShoppingGetSharedShoppingList({
     path: { token: sharedToken }
   })
   if (data) {
@@ -40,17 +44,13 @@ async function fetchList() {
 
 // Perform optimistic update
 async function toggleItem(item: ShoppingListItemSchema) {
-  // Optimistically toggle locally directly so user gets instant feedback
   item.is_checked = !item.is_checked
 
-  // Await the backend reality
-  const { data } = await mealsApiToggleSharedShoppingItem({
+  const { data } = await mealsApiShoppingToggleSharedShoppingItem({
     path: { token: sharedToken, item_id: String(item.id!) }
   })
 
-  // If it failed for some reason, the next poll will repair it automatically.
   if (data) {
-    // Optionally sync up in case backend returned forced data
     item.is_checked = data.is_checked
   }
 }
@@ -79,20 +79,12 @@ const categoryCounts = computed(() => {
 })
 
 async function exportExcel() {
-  const res = await mealsApiExportSharedShoppingList({
+  const res = await mealsApiShoppingExportSharedShoppingList({
     path: { token: sharedToken },
     parseAs: 'blob'
   })
   if (res.data) {
-    const blob = res.data as unknown as Blob
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `shopping_list.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+    downloadBlob(res.data as unknown as Blob, 'shopping_list.xlsx')
   }
 }
 
@@ -105,7 +97,6 @@ function copyLink() {
 onMounted(() => {
   fetchList()
   checkAuth()
-  // Start polling every 5 seconds
   pollInterval = setInterval(fetchList, 5000)
 })
 
@@ -116,13 +107,12 @@ onUnmounted(() => {
 
 <template>
   <div v-if="shoppingList" class="flex-col gap-4">
-    <div class="flex items-center justify-between"
-      style="background: var(--color-surface); padding: 1rem; border-radius: var(--radius-md); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 1rem; ">
+    <div class="card shared-header">
       <div>
-        <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge"
-          style="margin-bottom: 0.5rem; text-decoration: none; display: inline-block;">← Back to Planner</RouterLink>
-        <h2 style="margin: 0; font-size: 1.5rem;">Live Shopping List</h2>
-        <p class="text-mute" style="margin: 0; font-size: 0.9rem;">Changes are synchronized in real-time.</p>
+        <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge mb-2">{{
+          t('btn.back') }}</RouterLink>
+        <h2 class="page-title">Live Shopping List</h2>
+        <p class="text-mute text-sm">Changes are synchronized in real-time.</p>
       </div>
       <div class="flex gap-2">
         <button class="btn btn-secondary" @click="exportExcel">📥 Export</button>
@@ -133,34 +123,31 @@ onUnmounted(() => {
 
     <!-- Grouped Categories -->
     <div v-for="(items, category) in itemsByCategory" :key="category" class="card"
-      :style="categoryCounts[category as string].done === categoryCounts[category as string].total ? 'opacity: 0.7; border-style: dashed;' : ''">
-      <div class="flex justify-between items-center cursor-pointer"
-        style="margin-top: 0; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;"
-        @click="toggleCategory(category as string)">
+      :class="{ 'category-done': categoryCounts[category as string].done === categoryCounts[category as string].total }">
+      <div class="category-toggle flex justify-between items-center" @click="toggleCategory(category as string)">
         <div class="flex items-center gap-2">
-          <h3 style="margin: 0; font-size: inherit;"
+          <h3 class="category-heading"
             :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
             {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{
               category }}
           </h3>
-          <span style="font-size: 0.75rem; color: var(--color-text-mute); text-transform: none; font-weight: normal;">
+          <span class="text-xs text-mute category-count">
             ({{ categoryCounts[category as string].done }} / {{ categoryCounts[category as string].total }} done)
           </span>
         </div>
-        <span class="text-mute" style="font-size: 1.2rem; line-height: 1;">
+        <span class="collapse-icon text-mute">
           {{ collapsedCategories[category as string] ? '+' : '−' }}
         </span>
       </div>
 
-      <ul v-show="!collapsedCategories[category as string]"
-        style="list-style: none; padding: 0; padding-top: 1rem; margin: 0;" class="flex-col gap-2">
+      <ul v-show="!collapsedCategories[category as string]" class="list-reset flex-col gap-2 mt-4">
         <li v-for="item in items" :key="item.id!" class="shopping-item"
           :class="{ 'checked-item text-mute': item.is_checked }" @click="toggleItem(item)">
           <div class="checkbox" :class="{ 'checked': item.is_checked }">
             {{ item.is_checked ? '✓' : '' }}
           </div>
 
-          <div class="item-content" :style="item.is_checked ? 'text-decoration: line-through' : ''">
+          <div class="item-content" :class="{ 'line-through': item.is_checked }">
             <div class="item-name">
               <strong v-if="item.ingredient">{{ (item as any).ingredient.name }}</strong>
               <strong v-else>{{ item.custom_name }}</strong>
@@ -177,15 +164,14 @@ onUnmounted(() => {
 
               <!-- Desktop flat list -->
               <div class="source-desktop hidden-mobile text-mute">
-                <ul :style="item.is_checked ? 'text-decoration: none' : ''">
+                <ul :class="{ 'no-line-through': item.is_checked }">
                   <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <div class="item-measurement text-right text-mute border-left"
-            :style="item.is_checked ? 'text-decoration: line-through' : ''">
+          <div class="item-measurement text-right text-mute" :class="{ 'line-through': item.is_checked }">
             <strong>{{ parseFloat((item.amount).toFixed(2)) }} {{ item.unit }}</strong>
           </div>
         </li>
@@ -195,12 +181,55 @@ onUnmounted(() => {
 
 
   </div>
-  <div v-else class="text-center text-mute" style="padding: 4rem;">
-    Connecting to Live Shopping List...
+  <div v-else class="text-center text-mute py-8">
+    {{ t('loading') }}
   </div>
 </template>
 
 <style scoped>
+.shared-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-done {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.category-toggle {
+  cursor: pointer;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.category-heading {
+  margin: 0;
+  font-size: inherit;
+}
+
+.category-count {
+  text-transform: none;
+  font-weight: normal;
+}
+
+.collapse-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.line-through {
+  text-decoration: line-through;
+}
+
+.no-line-through {
+  text-decoration: none;
+}
+
 .shopping-item {
   display: flex;
   align-items: center;
@@ -228,6 +257,7 @@ onUnmounted(() => {
   justify-content: center;
   transition: all 0.2s ease;
   color: transparent;
+  flex-shrink: 0;
 }
 
 .checkbox.checked {

@@ -1,23 +1,13 @@
-import json
-import os
+"""Celery tasks for AI-powered translations."""
 
 from celery import shared_task
-from google import genai
-from pydantic import BaseModel
 
-
-class TranslationResult(BaseModel):
-    translated_text: str
-
-
-class BatchTranslationResult(BaseModel):
-    translations: list[dict[str, str]]
-
-
-class RecipeTranslationResult(BaseModel):
-    name: str
-    description: str
-    instructions: str
+from content.services import (
+    get_genai_client,
+    translate_ingredient_name,
+    translate_recipe_fields,
+    translate_text_de_to_fr,
+)
 
 
 @shared_task
@@ -27,8 +17,8 @@ def translate_ui_text(uitext_id):
 
     from content.models import UIText
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
+    client = get_genai_client()
+    if not client:
         return
 
     try:
@@ -39,28 +29,10 @@ def translate_ui_text(uitext_id):
     if not obj.text_de:
         return
 
-    client = genai.Client(api_key=api_key)
-    prompt = f"""Translate the following UI text from German to French.
-This is a UI label/text for a camp meal planning application.
-Keep it concise and natural. Only return the translation, nothing else.
-
-German text: "{obj.text_de}"
-"""
-
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": TranslationResult,
-            },
-        )
-        data = json.loads(response.text)
-        obj.text_fr = data.get("translated_text", "")
+    result = translate_text_de_to_fr(client, obj.text_de)
+    if result is not None:
+        obj.text_fr = result
         obj.save()
-    except Exception as e:
-        print(f"[AI] Error translating UIText {obj.key}: {e}")
 
 
 @shared_task
@@ -80,8 +52,8 @@ def translate_ingredient(ingredient_id):
 
     from meals.models import Ingredient
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
+    client = get_genai_client()
+    if not client:
         return
 
     try:
@@ -92,27 +64,10 @@ def translate_ingredient(ingredient_id):
     if not ingredient.name_de:
         return
 
-    client = genai.Client(api_key=api_key)
-    prompt = f"""Translate this food ingredient name from German to French.
-Only return the translated name, nothing else. Keep it natural and commonly used.
-
-German: "{ingredient.name_de}"
-"""
-
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": TranslationResult,
-            },
-        )
-        data = json.loads(response.text)
-        ingredient.name_fr = data.get("translated_text", "")
+    result = translate_ingredient_name(client, ingredient.name_de)
+    if result is not None:
+        ingredient.name_fr = result
         ingredient.save()
-    except Exception as e:
-        print(f"[AI] Error translating Ingredient {ingredient.name_de}: {e}")
 
 
 @shared_task
@@ -122,8 +77,8 @@ def translate_recipe(recipe_id):
 
     from meals.models import Recipe
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
+    client = get_genai_client()
+    if not client:
         return
 
     try:
@@ -133,8 +88,6 @@ def translate_recipe(recipe_id):
 
     if not recipe.name_de:
         return
-
-    client = genai.Client(api_key=api_key)
 
     fields_to_translate = {}
     if recipe.name_de:
@@ -147,25 +100,8 @@ def translate_recipe(recipe_id):
     if not fields_to_translate:
         return
 
-    prompt = f"""Translate the following recipe fields from German to French.
-This is for a camp meal planning application. Keep formatting (especially Markdown in instructions) intact.
-Return a JSON object with the same keys but translated values.
-
-Fields to translate:
-{json.dumps(fields_to_translate, ensure_ascii=False)}
-"""
-
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": RecipeTranslationResult,
-            },
-        )
-        data = json.loads(response.text)
-
+    data = translate_recipe_fields(client, fields_to_translate)
+    if data:
         if "name" in data:
             recipe.name_fr = data["name"]
         if "description" in data:
@@ -173,8 +109,6 @@ Fields to translate:
         if "instructions" in data:
             recipe.instructions_fr = data["instructions"]
         recipe.save()
-    except Exception as e:
-        print(f"[AI] Error translating Recipe {recipe.name_de}: {e}")
 
 
 @shared_task

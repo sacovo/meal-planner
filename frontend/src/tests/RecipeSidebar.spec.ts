@@ -4,7 +4,7 @@ import RecipeSidebar from '../components/RecipeSidebar.vue'
 import { vi } from 'vitest'
 
 vi.mock('../client', () => ({
-  mealsApiListRecipes: vi.fn((args) => {
+  mealsApiRecipesListRecipes: vi.fn((args) => {
     const query = args?.query?.q?.toLowerCase() || ''
     const allItems = [
       { id: '1', name: 'Recipe 1', default_portions: 4, preferences: [] },

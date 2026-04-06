@@ -16,13 +16,13 @@ vi.mock('vue-router', () => ({
 
 // Mocking the API client
 vi.mock('../client', () => ({
-  mealsApiGetCamp: vi.fn(() => Promise.resolve({ data: { id: '1', name: 'Test Camp', start_date: '2024-01-01', end_date: '2024-01-05', default_people_count: 10 } })),
-  mealsApiListCampMeals: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListRecipes: vi.fn(() => Promise.resolve({ data: { items: [], count: 0 } })),
-  mealsApiListPreferences: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListCampGeneralItems: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListCampShoppingLists: vi.fn(() => Promise.resolve({ data: [] })),
-  mealsApiListTags: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiCampsGetCamp: vi.fn(() => Promise.resolve({ data: { id: '1', name: 'Test Camp', start_date: '2024-01-01', end_date: '2024-01-05', default_people_count: 10 } })),
+  mealsApiMealsListCampMeals: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiRecipesListRecipes: vi.fn(() => Promise.resolve({ data: { items: [], count: 0 } })),
+  mealsApiRecipesListPreferences: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiCampsListCampGeneralItems: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiShoppingListCampShoppingLists: vi.fn(() => Promise.resolve({ data: [] })),
+  mealsApiIngredientsListTags: vi.fn(() => Promise.resolve({ data: [] })),
   coreApiAccount: vi.fn(() => Promise.resolve({ data: { username: 'testuser' } }))
 }))
 

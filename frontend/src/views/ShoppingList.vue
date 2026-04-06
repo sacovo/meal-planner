@@ -1,41 +1,34 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { mealsApiGetShoppingList, mealsApiExportShoppingList, type ShoppingListSchema } from '../client'
+import { mealsApiShoppingGetShoppingList, mealsApiShoppingExportShoppingList, type ShoppingListSchema } from '../client'
+import { useFileDownload } from '../composables/useFileDownload'
 
 const route = useRoute()
+const { downloadBlob } = useFileDownload()
 const campId = route.params.id as string
 const listId = route.query.id as string
 const list = ref<ShoppingListSchema | null>(null)
 
 async function fetchList() {
   if (!listId) return
-  const { data } = await mealsApiGetShoppingList({ path: { list_id: listId } })
+  const { data } = await mealsApiShoppingGetShoppingList({ path: { list_id: listId } })
   if (data) list.value = data
 }
 
 async function exportExcel() {
   if (!listId) return
-  const res = await mealsApiExportShoppingList({
+  const res = await mealsApiShoppingExportShoppingList({
     path: { list_id: listId },
     parseAs: 'blob'
   })
   if (res.data) {
-    const blob = res.data as unknown as Blob
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `shopping_list.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+    downloadBlob(res.data as unknown as Blob, 'shopping_list.xlsx')
   }
 }
 
 onMounted(fetchList)
 
-// For display, group items by category
 const groupedItems = computed(() => {
   if (!list.value?.items) return {}
   const groups: Record<string, any[]> = {}
@@ -49,10 +42,10 @@ const groupedItems = computed(() => {
 
 <template>
   <div v-if="list">
-    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+    <div class="page-header mb-8">
       <div>
-        <RouterLink :to="`/camps/${campId}`" class="badge" style="margin-bottom: 0.5rem">← Back to Planner</RouterLink>
-        <h2>Shopping List</h2>
+        <RouterLink :to="`/camps/${campId}`" class="badge mb-2">← Back to Planner</RouterLink>
+        <h2 class="page-title">Shopping List</h2>
       </div>
       <div class="flex gap-2">
         <button class="btn btn-secondary" @click="exportExcel">📥 Export Excel</button>
@@ -61,14 +54,32 @@ const groupedItems = computed(() => {
     </div>
 
     <!-- Grouped lists -->
-    <div v-for="(items, category) in groupedItems" :key="category" style="margin-bottom: 2rem;">
-      <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem">
+    <div v-for="(items, category) in groupedItems" :key="category" class="mb-8">
+      <h3 class="category-divider">
         {{ category }}
       </h3>
-      <div v-for="item in items" :key="item.id as string" class="flex items-center gap-4" style="padding: 0.5rem 0;">
-        <input type="checkbox" v-model="item.is_checked" style="width: 1.25rem; height: 1.25rem; border-radius: var(--radius-sm);" />
+      <div v-for="item in items" :key="item.id as string" class="flex items-center gap-4 shopping-item-row">
+        <input type="checkbox" v-model="item.is_checked" class="shopping-checkbox" />
         <span>{{ item.amount }} {{ item.unit }} - <strong>{{ item.custom_name || item.ingredient?.name }}</strong></span>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.category-divider {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.shopping-item-row {
+  padding: 0.5rem 0;
+}
+
+.shopping-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-sm);
+}
+</style>

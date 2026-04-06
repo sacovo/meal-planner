@@ -2,17 +2,18 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  mealsApiGetCamp,
-  mealsApiListCampMeals,
-  mealsApiListRecipes,
-  mealsApiListRecipeIngredients,
-  mealsApiToggleCampMealDone,
+  mealsApiCampsGetCamp,
+  mealsApiMealsListCampMeals,
+  mealsApiRecipesListRecipes,
+  mealsApiRecipesListRecipeIngredients,
+  mealsApiMealsToggleCampMealDone,
   type CampSchema,
   type CampMealSchema,
   type RecipeSchema,
   type RecipeIngredientSchema
 } from '../client'
 import MarkdownView from '../components/MarkdownView.vue'
+import { getMealTypeLabel } from '../composables/useMealTypes'
 // @ts-ignore
 import html2pdf from 'html2pdf.js'
 
@@ -28,33 +29,23 @@ const recipes = ref<RecipeSchema[]>([])
 const ingredientsMap = ref<Record<string, RecipeIngredientSchema[]>>({})
 const loading = ref(true)
 
-const mealTypesConfig = [
-  { val: "BREAKFAST", label: "Frühstück" },
-  { val: "MORNING_SNACK", label: "Znüni" },
-  { val: "LUNCH", label: "Mittagessen" },
-  { val: "AFTERNOON_SNACK", label: "Zvieri" },
-  { val: "DINNER", label: "Abendessen" },
-  { val: "DESSERT", label: "Dessert" },
-]
-
 async function fetchData() {
   loading.value = true
   try {
-    const { data: campData } = await mealsApiGetCamp({ path: { camp_id: campId } })
+    const { data: campData } = await mealsApiCampsGetCamp({ path: { camp_id: campId } })
     if (campData) camp.value = campData
 
-    const { data: allMeals } = await mealsApiListCampMeals({ path: { camp_id: campId } })
+    const { data: allMeals } = await mealsApiMealsListCampMeals({ path: { camp_id: campId } })
     if (allMeals) {
       meals.value = allMeals.filter(m => m.date === dateStr)
     }
 
-    const { data: allRecipes } = await mealsApiListRecipes()
+    const { data: allRecipes } = await mealsApiRecipesListRecipes()
     if (allRecipes) recipes.value = allRecipes.items
 
-    // Fetch ingredients for these meals
     for (const meal of meals.value) {
       if (!ingredientsMap.value[meal.recipe]) {
-        const { data: ingData } = await mealsApiListRecipeIngredients({ path: { recipe_id: meal.recipe } })
+        const { data: ingData } = await mealsApiRecipesListRecipeIngredients({ path: { recipe_id: meal.recipe } })
         if (ingData) {
           ingredientsMap.value[meal.recipe] = ingData
         }
@@ -67,7 +58,7 @@ async function fetchData() {
 
 async function toggleMealDone(meal: CampMealSchema) {
   try {
-    const { data } = await mealsApiToggleCampMealDone({
+    const { data } = await mealsApiMealsToggleCampMealDone({
       path: { camp_id: campId, meal_id: meal.id as string }
     })
     if (data) {
@@ -109,10 +100,10 @@ onMounted(fetchData)
 
 <template>
   <div class="container page-container">
-    <div class="flex justify-between items-center no-print" style="margin-bottom: 2rem;">
+    <div class="page-header no-print mb-8">
       <div class="flex items-center gap-4">
         <button class="btn btn-secondary" @click="router.push(`/camps/${campId}`)">&larr; Back to Plan</button>
-        <h2 v-if="camp">{{ camp.name }} - {{ new Date(dateStr).toLocaleDateString(undefined, {
+        <h2 v-if="camp" class="page-title">{{ camp.name }} - {{ new Date(dateStr).toLocaleDateString(undefined, {
           weekday: 'long', day:
             'numeric', month: 'long'
         }) }}</h2>
@@ -122,7 +113,7 @@ onMounted(fetchData)
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-20">
+    <div v-if="loading" class="text-center py-8">
       <div class="text-mute">Loading daily details...</div>
     </div>
 
@@ -135,30 +126,28 @@ onMounted(fetchData)
         }) }}</h2>
       </div>
 
-      <div v-if="meals.length === 0" class="card text-center py-10 text-mute">
+      <div v-if="meals.length === 0" class="card text-center py-8 text-mute">
         No meals scheduled for this day.
       </div>
 
       <div v-for="meal in meals" :key="meal.id as string" class="meal-section card"
         :class="{ 'meal-done': meal.is_done }">
-        <div class="flex justify-between items-end border-b pb-4 mb-4">
+        <div class="flex justify-between items-end meal-header">
           <div>
-            <div class="flex items-center gap-2 no-print" style="margin-bottom: 0.5rem;">
-              <div class="badge">{{mealTypesConfig.find(m => m.val === meal.meal_type)?.label}}</div>
-              <div v-if="meal.is_done" class="badge" style="background: var(--color-success); color: white;">✓ Cooked
-              </div>
+            <div class="flex items-center gap-2 no-print mb-2">
+              <div class="badge">{{getMealTypeLabel(meal.meal_type)}}</div>
+              <div v-if="meal.is_done" class="badge badge-success">✓ Cooked</div>
             </div>
-            <h1 class="meal-title" style="margin: 0; color: var(--color-primary);">{{ getRecipe(meal.recipe)?.name }}
-            </h1>
+            <h1 class="meal-title">{{ getRecipe(meal.recipe)?.name }}</h1>
           </div>
           <div class="flex flex-col items-end gap-2">
             <button class="btn btn-secondary no-print" @click="toggleMealDone(meal)">
               {{ meal.is_done ? '🍳 Mark as todo' : '✅ Mark as Cooked' }}
             </button>
             <div class="text-right">
-              <div style="font-size: 1.25rem; font-weight: bold;">{{ meal.override_people_count ||
+              <div class="meal-people-count">{{ meal.override_people_count ||
                 camp?.default_people_count }} Persons</div>
-              <div v-if="meal.serves_preference" style="color: var(--color-primary); font-weight: bold;">
+              <div v-if="meal.serves_preference" class="meal-preference">
                 Target Group: {{ meal.serves_preference.name }}
               </div>
             </div>
@@ -167,18 +156,18 @@ onMounted(fetchData)
 
         <div class="grid grid-cols-2 gap-8">
           <div>
-            <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-bg-mute);">Ingredients</h3>
-            <ul class="ingredient-list">
+            <h3 class="section-heading">Ingredients</h3>
+            <ul class="list-reset">
               <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number"
-                class="flex justify-between py-2 border-b">
-                <span style="font-weight: 500;">{{ ri.ingredient.name }}</span>
+                class="flex justify-between py-2 ingredient-row">
+                <span class="font-bold">{{ ri.ingredient.name }}</span>
                 <span class="text-mute">{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }} {{ ri.unit }}</span>
               </li>
-              <li v-if="!ingredientsMap[meal.recipe]" class="text-mute italic">No ingredients found.</li>
+              <li v-if="!ingredientsMap[meal.recipe]" class="text-mute">No ingredients found.</li>
             </ul>
           </div>
           <div>
-            <h3 style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-bg-mute);">Instructions</h3>
+            <h3 class="section-heading">Instructions</h3>
             <div class="instructions-text">
               <MarkdownView v-if="getRecipe(meal.recipe)?.instructions"
                 :content="getRecipe(meal.recipe)?.instructions" />
@@ -188,7 +177,7 @@ onMounted(fetchData)
         </div>
       </div>
 
-      <div class="only-print text-center text-mute" style="margin-top: 2rem; font-size: 0.8rem;">
+      <div class="only-print text-center text-mute mt-8 text-xs">
         Generated by Camp Meal Planner
       </div>
     </div>
@@ -208,14 +197,44 @@ onMounted(fetchData)
   border: 1px solid var(--color-border);
 }
 
+.meal-header {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.meal-title {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.meal-people-count {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.meal-preference {
+  color: var(--color-primary);
+  font-weight: bold;
+}
+
+.badge-success {
+  background: var(--color-success);
+  color: white;
+}
+
+.section-heading {
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--color-bg-mute);
+}
+
+.ingredient-row {
+  border-bottom: 1px solid var(--color-bg-mute);
+}
+
 .instructions-text {
   font-size: 0.95rem;
   line-height: 1.6;
-}
-
-.ingredient-list {
-  list-style: none;
-  padding: 0;
 }
 
 .grid-cols-2 {
@@ -224,15 +243,23 @@ onMounted(fetchData)
   gap: 2rem;
 }
 
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.meal-done {
+  opacity: 0.7;
+  border-style: dashed;
+  filter: grayscale(0.4);
+}
+
+.print-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
 @media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .only-print {
-    display: block !important;
-  }
-
   .card {
     border: none;
     padding: 0;
@@ -241,20 +268,5 @@ onMounted(fetchData)
   body {
     background: white;
   }
-}
-
-.only-print {
-  display: none;
-}
-
-.print-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.meal-done {
-  opacity: 0.7;
-  border-style: dashed;
-  filter: grayscale(0.4);
 }
 </style>

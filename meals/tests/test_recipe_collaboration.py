@@ -63,9 +63,6 @@ class RecipeCollaborationTest(TestCase):
             data=json.dumps({"name": "Hacked"}),
             content_type="application/json",
         )
-        # Ninja might return 402 or 500 if PermissionError is raised and not handled by an exception handler
-        # But usually in tests we want to see it catch it.
-        # Actually default Ninja behavior for unhandled exception is 500, but let's see.
         self.assertNotEqual(response.status_code, 200)
         self.recipe.refresh_from_db()
         self.assertNotEqual(self.recipe.name, "Hacked")
