@@ -20,6 +20,7 @@ const sharedToken = route.params.token as string
 
 const shoppingList = ref<ShoppingListSchema | null>(null)
 const isLoggedIn = ref(false)
+const isNavOpen = ref(false)
 
 const sseUrl = computed(() => `/api/meals/shared/shopping-lists/${sharedToken}/events`)
 const { on } = useSSE(() => sseUrl.value)
@@ -69,6 +70,8 @@ const itemsByCategory = computed(() => {
   return grouped
 })
 
+const categoryEntries = computed(() => Object.entries(itemsByCategory.value))
+
 const categoryCounts = computed(() => {
   const counts: Record<string, { done: number, total: number }> = {}
   if (!shoppingList.value) return counts
@@ -97,6 +100,14 @@ function copyLink() {
   alert("Link copied to clipboard! Anyone with this link can check off items.")
 }
 
+function getCategoryAnchor(category: string) {
+  return `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`
+}
+
+function closeNav() {
+  isNavOpen.value = false
+}
+
 onMounted(() => {
   fetchList()
   checkAuth()
@@ -121,77 +132,115 @@ onUnmounted(() => {
 <template>
   <div v-if="shoppingList" class="flex-col gap-4">
     <div class="card shared-header">
-      <div>
+      <div class="header-top">
         <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge mb-2">{{
           t('btn.back') }}</RouterLink>
         <h2 class="page-title">Live Shopping List</h2>
         <p class="text-mute text-sm">Changes are synchronized in real-time.</p>
       </div>
-      <div class="flex gap-2">
+      <div class="header-actions">
+        <button v-if="categoryEntries.length > 0" class="btn btn-secondary quick-nav-toggle hide-desktop" @click="isNavOpen = true">
+          ☰ Quick Nav
+        </button>
         <button class="btn btn-secondary" @click="exportExcel">📥 Export</button>
         <button class="btn btn-secondary" @click="copyLink">🔗 Share Link</button>
       </div>
     </div>
 
+    <div v-if="categoryEntries.length > 0" class="drawer-backdrop no-print hide-desktop" :class="{ open: isNavOpen }"
+      @click="closeNav" />
 
-    <!-- Grouped Categories -->
-    <div v-for="(items, category) in itemsByCategory" :key="category" class="card"
-      :class="{ 'category-done': categoryCounts[category as string].done === categoryCounts[category as string].total }">
-      <div class="category-toggle flex justify-between items-center" @click="toggleCategory(category as string)">
-        <div class="flex items-center gap-2">
-          <h3 class="category-heading"
-            :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
-            {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{
-              category }}
-          </h3>
-          <span class="text-xs text-mute category-count">
-            ({{ categoryCounts[category as string].done }} / {{ categoryCounts[category as string].total }} done)
-          </span>
+    <aside v-if="categoryEntries.length > 0" class="quick-nav-drawer no-print hide-desktop" :class="{ open: isNavOpen }">
+      <div class="drawer-header">
+        <h3 class="mb-0">Quick Nav</h3>
+        <button class="btn btn-secondary btn-sm" @click="closeNav">Close</button>
+      </div>
+      <nav>
+        <ul class="quick-nav-list">
+          <li v-for="([category, items]) in categoryEntries" :key="`drawer-${category}`">
+            <a class="quick-nav-link" :href="`#${getCategoryAnchor(category)}`" @click="closeNav">
+              <span>{{ category }}</span>
+              <span class="text-mute">{{ items.length }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="shared-layout">
+      <div class="flex-col gap-4">
+        <!-- Grouped Categories -->
+        <div v-for="([category, items]) in categoryEntries" :id="getCategoryAnchor(category)" :key="category" class="card"
+          :class="{ 'category-done': categoryCounts[category as string].done === categoryCounts[category as string].total }">
+          <div class="category-toggle flex justify-between items-center" @click="toggleCategory(category as string)">
+            <div class="flex items-center gap-2">
+              <h3 class="category-heading"
+                :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
+                {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{
+                  category }}
+              </h3>
+              <span class="text-xs text-mute category-count">
+                ({{ categoryCounts[category as string].done }} / {{ categoryCounts[category as string].total }} done)
+              </span>
+            </div>
+            <span class="collapse-icon text-mute">
+              {{ collapsedCategories[category as string] ? '+' : '−' }}
+            </span>
+          </div>
+
+          <ul v-show="!collapsedCategories[category as string]" class="list-reset flex-col gap-2 mt-4">
+            <li v-for="item in items" :key="item.id!" class="shopping-item"
+              :class="{ 'checked-item text-mute': item.is_checked }" @click="toggleItem(item)">
+              <div class="checkbox" :class="{ 'checked': item.is_checked }">
+                {{ item.is_checked ? '✓' : '' }}
+              </div>
+
+              <div class="item-content" :class="{ 'line-through': item.is_checked }">
+                <div class="item-name">
+                  <strong v-if="item.ingredient">{{ (item as any).ingredient.name }}</strong>
+                  <strong v-else>{{ item.custom_name }}</strong>
+                </div>
+
+                <div class="item-sources" v-if="item.source_meals_text && item.source_meals_text.length" @click.stop>
+                  <!-- Mobile Collapsible -->
+                  <details class="source-details hidden-desktop">
+                    <summary class="text-mute">{{ item.source_meals_text.length }} Menus (Show)</summary>
+                    <ul>
+                      <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
+                    </ul>
+                  </details>
+
+                  <!-- Desktop flat list -->
+                  <div class="source-desktop hidden-mobile text-mute">
+                    <ul :class="{ 'no-line-through': item.is_checked }">
+                      <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="item-measurement text-right text-mute" :class="{ 'line-through': item.is_checked }">
+                <strong>{{ parseFloat((item.amount).toFixed(2)) }} {{ item.unit }}</strong>
+              </div>
+            </li>
+          </ul>
         </div>
-        <span class="collapse-icon text-mute">
-          {{ collapsedCategories[category as string] ? '+' : '−' }}
-        </span>
       </div>
 
-      <ul v-show="!collapsedCategories[category as string]" class="list-reset flex-col gap-2 mt-4">
-        <li v-for="item in items" :key="item.id!" class="shopping-item"
-          :class="{ 'checked-item text-mute': item.is_checked }" @click="toggleItem(item)">
-          <div class="checkbox" :class="{ 'checked': item.is_checked }">
-            {{ item.is_checked ? '✓' : '' }}
-          </div>
-
-          <div class="item-content" :class="{ 'line-through': item.is_checked }">
-            <div class="item-name">
-              <strong v-if="item.ingredient">{{ (item as any).ingredient.name }}</strong>
-              <strong v-else>{{ item.custom_name }}</strong>
-            </div>
-
-            <div class="item-sources" v-if="item.source_meals_text && item.source_meals_text.length" @click.stop>
-              <!-- Mobile Collapsible -->
-              <details class="source-details hidden-desktop">
-                <summary class="text-mute">{{ item.source_meals_text.length }} Menus (Show)</summary>
-                <ul>
-                  <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
-                </ul>
-              </details>
-
-              <!-- Desktop flat list -->
-              <div class="source-desktop hidden-mobile text-mute">
-                <ul :class="{ 'no-line-through': item.is_checked }">
-                  <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div class="item-measurement text-right text-mute" :class="{ 'line-through': item.is_checked }">
-            <strong>{{ parseFloat((item.amount).toFixed(2)) }} {{ item.unit }}</strong>
-          </div>
-        </li>
-      </ul>
+      <aside v-if="categoryEntries.length > 0" class="quick-nav card no-print hide-mobile">
+        <h3 class="mb-2">Quick Nav</h3>
+        <nav>
+          <ul class="quick-nav-list">
+            <li v-for="([category, items]) in categoryEntries" :key="`desktop-${category}`">
+              <a class="quick-nav-link" :href="`#${getCategoryAnchor(category)}`">
+                <span>{{ category }}</span>
+                <span class="text-mute">{{ items.length }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
     </div>
-
-
 
   </div>
   <div v-else class="text-center text-mute py-8">
@@ -200,10 +249,29 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.shared-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
 .shared-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+}
+
+.header-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .category-done {
@@ -349,6 +417,17 @@ onUnmounted(() => {
     list-style: disc;
     padding-left: 1rem;
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .shared-layout {
+    display: block;
+  }
+
+  .shared-header {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>

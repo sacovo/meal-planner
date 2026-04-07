@@ -13,6 +13,7 @@ export const MEAL_TYPES = [
   { val: 'AFTERNOON_SNACK', label: t('meal.afternoon_snack') },
   { val: 'DINNER', label: t('meal.dinner') },
   { val: 'DESSERT', label: t('meal.dessert') },
+  { val: 'NIGHT_SNACK', label: t('meal.night_snack') },
 ]
 
 export type MealTypeValue = (typeof MEAL_TYPES)[number]['val']

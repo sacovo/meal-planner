@@ -29,11 +29,6 @@ const router = createRouter({
       component: () => import('../views/SharedShoppingList.vue')
     },
     {
-      path: '/camps/:id/shopping-list',
-      name: 'shopping-list',
-      component: () => import('../views/ShoppingList.vue')
-    },
-    {
       path: '/recipes',
       name: 'recipes',
       component: () => import('../views/Recipes.vue')

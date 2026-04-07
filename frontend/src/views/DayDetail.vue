@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   mealsApiCampsGetCamp,
@@ -13,9 +13,10 @@ import {
   type RecipeIngredientSchema
 } from '../client'
 import MarkdownView from '../components/MarkdownView.vue'
-import { getMealTypeLabel } from '../composables/useMealTypes'
+import { MEAL_TYPES } from '../composables/useMealTypes'
 // @ts-ignore
 import html2pdf from 'html2pdf.js'
+import { useI18n } from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
@@ -28,6 +29,30 @@ const meals = ref<CampMealSchema[]>([])
 const recipes = ref<RecipeSchema[]>([])
 const ingredientsMap = ref<Record<string, RecipeIngredientSchema[]>>({})
 const loading = ref(true)
+const isNavOpen = ref(false)
+const {t } = useI18n()
+
+const groupedMeals = computed(() => {
+  const knownTypeSet = new Set(MEAL_TYPES.map((mt) => mt.val))
+  const knownGroups = MEAL_TYPES
+    .map((mt) => ({
+      type: mt.val,
+      label: mt.label,
+      meals: meals.value.filter((meal) => meal.meal_type === mt.val),
+    }))
+    .filter((group) => group.meals.length > 0)
+
+  const unknownMeals = meals.value.filter((meal) => !knownTypeSet.has(meal.meal_type))
+  if (unknownMeals.length > 0) {
+    knownGroups.push({
+      type: 'UNKNOWN',
+      label: 'Other',
+      meals: unknownMeals,
+    })
+  }
+
+  return knownGroups
+})
 
 async function fetchData() {
   loading.value = true
@@ -95,20 +120,31 @@ function exportPDF() {
   html2pdf().set(opt).from(element).save()
 }
 
+function getSlotAnchor(type: string) {
+  return `slot-${type.toLowerCase()}`
+}
+
+function closeNav() {
+  isNavOpen.value = false
+}
+
 onMounted(fetchData)
 </script>
 
 <template>
   <div class="container page-container">
     <div class="page-header no-print mb-8">
-      <div class="flex items-center gap-4">
+      <div class="header-top">
         <button class="btn btn-secondary" @click="router.push(`/camps/${campId}`)">&larr; Back to Plan</button>
         <h2 v-if="camp" class="page-title">{{ camp.name }} - {{ new Date(dateStr).toLocaleDateString(undefined, {
           weekday: 'long', day:
             'numeric', month: 'long'
         }) }}</h2>
       </div>
-      <div class="flex gap-2">
+      <div class="header-actions">
+        <button v-if="groupedMeals.length > 0" class="btn btn-secondary quick-nav-toggle" @click="isNavOpen = true">
+          🕐 {{ t('slots') }}
+        </button>
         <button class="btn btn-primary" @click="exportPDF">🖨 Export PDF / Print</button>
       </div>
     </div>
@@ -117,84 +153,157 @@ onMounted(fetchData)
       <div class="text-mute">Loading daily details...</div>
     </div>
 
-    <div v-else id="printable-content" class="flex-col gap-8 print-container">
-      <div class="print-header only-print">
-        <h1>{{ camp?.name }}</h1>
-        <h2>{{ new Date(dateStr).toLocaleDateString(undefined, {
-          weekday: 'long', day: 'numeric', month: 'long', year:
-            'numeric'
-        }) }}</h2>
-      </div>
+    <div v-else>
+      <div v-if="groupedMeals.length > 0" class="drawer-backdrop no-print" :class="{ open: isNavOpen }" @click="closeNav" />
 
-      <div v-if="meals.length === 0" class="card text-center py-8 text-mute">
-        No meals scheduled for this day.
-      </div>
+      <aside v-if="groupedMeals.length > 0" class="quick-nav-drawer no-print" :class="{ open: isNavOpen }">
+        <div class="drawer-header">
+          <h3 class="mb-0">Quick Nav</h3>
+          <button class="btn btn-secondary btn-sm" @click="closeNav">Close</button>
+        </div>
+        <nav>
+          <ul class="quick-nav-list">
+            <li v-for="group in groupedMeals" :key="`drawer-${group.type}`">
+              <a class="quick-nav-link" :href="`#${getSlotAnchor(group.type)}`" @click="closeNav">
+                <span>{{ group.label }}</span>
+                <span class="text-mute">{{ group.meals.length }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
 
-      <div v-for="meal in meals" :key="meal.id as string" class="meal-section card"
-        :class="{ 'meal-done': meal.is_done }">
-        <div class="flex justify-between items-end meal-header">
-          <div>
-            <div class="flex items-center gap-2 no-print mb-2">
-              <div class="badge">{{getMealTypeLabel(meal.meal_type)}}</div>
-              <div v-if="meal.is_done" class="badge badge-success">✓ Cooked</div>
-            </div>
-            <h1 class="meal-title">{{ getRecipe(meal.recipe)?.name }}</h1>
+      <div class="day-layout">
+        <div id="printable-content" class="flex-col gap-8 print-container">
+          <div class="print-header only-print">
+            <h1>{{ camp?.name }}</h1>
+            <h2>{{ new Date(dateStr).toLocaleDateString(undefined, {
+              weekday: 'long', day: 'numeric', month: 'long', year:
+                'numeric'
+            }) }}</h2>
           </div>
-          <div class="flex flex-col items-end gap-2">
-            <button class="btn btn-secondary no-print" @click="toggleMealDone(meal)">
-              {{ meal.is_done ? '🍳 Mark as todo' : '✅ Mark as Cooked' }}
-            </button>
-            <div class="text-right">
-              <div class="meal-people-count">{{ meal.override_people_count ||
-                camp?.default_people_count }} Persons</div>
-              <div v-if="meal.serves_preference" class="meal-preference">
-                Target Group: {{ meal.serves_preference.name }}
+
+          <div v-if="groupedMeals.length === 0" class="card text-center py-8 text-mute">
+            No meals scheduled for this day.
+          </div>
+
+          <section v-for="group in groupedMeals" :id="getSlotAnchor(group.type)" :key="group.type" class="slot-group">
+            <h2 class="slot-heading">{{ group.label }}</h2>
+
+            <div v-for="meal in group.meals" :key="meal.id as string" class="meal-section card"
+              :class="{ 'meal-done': meal.is_done }">
+              <div class="flex justify-between items-end meal-header">
+                <div>
+                  <div class="flex items-center gap-2 no-print mb-2">
+                    <div v-if="meal.is_done" class="badge badge-success">✓ Cooked</div>
+                  </div>
+                  <h1 class="meal-title">{{ getRecipe(meal.recipe)?.name }}</h1>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                  <button class="btn btn-secondary no-print" @click="toggleMealDone(meal)">
+                    {{ meal.is_done ? '🍳 Mark as todo' : '✅ Mark as Cooked' }}
+                  </button>
+                  <div class="text-right">
+                    <div class="meal-people-count">{{ meal.override_people_count ||
+                      camp?.default_people_count }} Persons</div>
+                    <div v-if="meal.serves_preference" class="meal-preference">
+                      Target Group: {{ meal.serves_preference.name }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-8">
+                <div>
+                  <h3 class="section-heading">Ingredients</h3>
+                  <ul class="list-reset">
+                    <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number"
+                      class="flex justify-between py-2 ingredient-row">
+                      <span class="font-bold">{{ ri.ingredient.name }}</span>
+                      <span class="text-mute">{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }} {{ ri.unit }}</span>
+                    </li>
+                    <li v-if="!ingredientsMap[meal.recipe]" class="text-mute">No ingredients found.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="section-heading">Instructions</h3>
+                  <div class="instructions-text">
+                    <MarkdownView v-if="getRecipe(meal.recipe)?.instructions"
+                      :content="getRecipe(meal.recipe)?.instructions" />
+                    <div v-else class="text-mute">No instructions provided.</div>
+                  </div>
+                </div>
               </div>
             </div>
+          </section>
+
+          <div class="only-print text-center text-mute mt-8 text-xs">
+            Generated by Camp Meal Planner
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-8">
-          <div>
-            <h3 class="section-heading">Ingredients</h3>
-            <ul class="list-reset">
-              <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number"
-                class="flex justify-between py-2 ingredient-row">
-                <span class="font-bold">{{ ri.ingredient.name }}</span>
-                <span class="text-mute">{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }} {{ ri.unit }}</span>
+        <aside v-if="groupedMeals.length > 0" class="quick-nav card no-print">
+          <h3 class="mb-2">Quick Nav</h3>
+          <nav>
+            <ul class="quick-nav-list">
+              <li v-for="group in groupedMeals" :key="`desktop-${group.type}`">
+                <a class="quick-nav-link" :href="`#${getSlotAnchor(group.type)}`">
+                  <span>{{ group.label }}</span>
+                  <span class="text-mute">{{ group.meals.length }}</span>
+                </a>
               </li>
-              <li v-if="!ingredientsMap[meal.recipe]" class="text-mute">No ingredients found.</li>
             </ul>
-          </div>
-          <div>
-            <h3 class="section-heading">Instructions</h3>
-            <div class="instructions-text">
-              <MarkdownView v-if="getRecipe(meal.recipe)?.instructions"
-                :content="getRecipe(meal.recipe)?.instructions" />
-              <div v-else class="text-mute">No instructions provided.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="only-print text-center text-mute mt-8 text-xs">
-        Generated by Camp Meal Planner
+          </nav>
+        </aside>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.print-container {
-  max-width: 1000px;
-  margin: 0 auto;
+.day-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1.5rem;
+  align-items: start;
 }
+
+.print-container {
+  width: 100%;
+}
+
+.header-top {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+
 
 .meal-section {
   page-break-inside: avoid;
   margin-bottom: 2rem;
   box-shadow: none;
   border: 1px solid var(--color-border);
+}
+
+.slot-group {
+  margin-bottom: 2.5rem;
+}
+
+.slot-heading {
+  margin: 0 0 1rem;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
 }
 
 .meal-header {
@@ -259,14 +368,35 @@ onMounted(fetchData)
   margin-bottom: 2rem;
 }
 
-@media print {
-  .card {
-    border: none;
-    padding: 0;
+@media (max-width: 900px) {
+  .day-layout {
+    display: block;
   }
 
-  body {
-    background: white;
+  .header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-actions {
+    margin-top: 0.5rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .meal-header {
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .meal-header .text-right {
+    text-align: left;
   }
 }
+
+
 </style>

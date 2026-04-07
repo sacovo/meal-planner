@@ -20,6 +20,7 @@ const campId = route.params.id as string
 const inventory = ref<InventoryStatusSchema[]>([])
 const camp = ref<CampSchema | null>(null)
 const loading = ref(true)
+const isNavOpen = ref(false)
 
 const showAddModal = ref(false)
 const selectedItem = ref<InventoryStatusSchema | null>(null)
@@ -92,18 +93,29 @@ function getBalanceColor(balance: number) {
   return 'var(--color-success)'
 }
 
+function getCategoryAnchor(category: string) {
+  return `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`
+}
+
+function closeNav() {
+  isNavOpen.value = false
+}
+
 onMounted(fetchData)
 </script>
 
 <template>
   <div v-if="camp" class="flex-col gap-4">
     <div class="page-header card">
-      <div>
+      <div class="header-top">
         <RouterLink :to="`/camps/${campId}`" class="badge mb-2">{{ t('btn.back') }}</RouterLink>
         <h2 class="page-title">{{ t('inventory.title') }}: {{ camp.name }}</h2>
         <p class="text-mute">{{ t('inventory.description') }}</p>
       </div>
-      <div class="flex gap-2">
+      <div class="header-actions">
+        <button v-if="categories.length > 0" class="btn btn-secondary quick-nav-toggle hide-desktop" @click="isNavOpen = true">
+          ☰ Quick Nav
+        </button>
         <button class="btn btn-secondary" @click="exportExcel">📥 {{ t('btn.export') || 'Export' }}</button>
         <button class="btn btn-secondary" @click="fetchData">🔄 {{ t('btn.refresh') }}</button>
       </div>
@@ -121,51 +133,89 @@ onMounted(fetchData)
       {{ t('inventory.no_items') }}
     </div>
 
-    <div v-else class="card card-flush">
-      <div class="overflow-x-auto">
-        <table class="table inventory-table">
-          <thead>
-            <tr>
-              <th>{{ t('inventory.ingredient') }}</th>
-              <th class="col-number">{{ t('inventory.in_stock') }}</th>
-              <th class="col-unit"></th>
-              <th class="col-number">{{ t('inventory.still_needed') }}</th>
-              <th class="col-unit"></th>
-              <th class="col-number">{{ t('inventory.balance') }}</th>
-              <th class="col-unit"></th>
-              <th class="col-action">{{ t('inventory.add_to_list') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template v-for="cat in categories" :key="cat">
-              <tr class="category-row">
-                <td colspan="8">
-                  <h3 class="category-header">{{ cat }}</h3>
-                </td>
-              </tr>
+    <div v-else>
+      <div v-if="categories.length > 0" class="drawer-backdrop no-print hide-desktop" :class="{ open: isNavOpen }"
+        @click="closeNav" />
 
-              <tr v-for="item in getItemsForCategory(cat)" :key="item.ingredient_id as string">
-                <td><strong>{{ item.ingredient_name }}</strong></td>
-                <td class="col-number">{{ parseFloat(item.quantity_bought.toFixed(2)) }}</td>
-                <td class="col-unit">{{ item.unit }}</td>
-                <td class="col-number">{{ parseFloat(item.quantity_required.toFixed(2)) }}</td>
-                <td class="col-unit">{{ item.unit }}</td>
-                <td class="col-number font-bold" :style="{ color: getBalanceColor(item.balance) }">
-                  <span v-if="item.balance > 0">+</span>{{ parseFloat(item.balance.toFixed(2)) }}
-                </td>
-                <td class="col-unit font-bold" :style="{ color: getBalanceColor(item.balance) }">
-                  {{ item.unit }}
-                </td>
-                <td class="col-action">
-                  <button class="btn btn-secondary btn-xs" title="Add to latest shopping list"
-                    @click="openAddModal(item)">
-                    🛒+
-                  </button>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+      <aside v-if="categories.length > 0" class="quick-nav-drawer no-print hide-desktop" :class="{ open: isNavOpen }">
+        <div class="drawer-header">
+          <h3 class="mb-0">Quick Nav</h3>
+          <button class="btn btn-secondary btn-sm" @click="closeNav">Close</button>
+        </div>
+        <nav>
+          <ul class="quick-nav-list">
+            <li v-for="cat in categories" :key="`drawer-${cat}`">
+              <a class="quick-nav-link" :href="`#${getCategoryAnchor(cat)}`" @click="closeNav">
+                <span>{{ cat }}</span>
+                <span class="text-mute">{{ getItemsForCategory(cat).length }}</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="inventory-layout">
+        <div class="card card-flush">
+          <div class="overflow-x-auto">
+            <table class="table inventory-table">
+              <thead>
+                <tr>
+                  <th>{{ t('inventory.ingredient') }}</th>
+                  <th class="col-number">{{ t('inventory.in_stock') }}</th>
+                  <th class="col-unit"></th>
+                  <th class="col-number">{{ t('inventory.still_needed') }}</th>
+                  <th class="col-unit"></th>
+                  <th class="col-number">{{ t('inventory.balance') }}</th>
+                  <th class="col-unit"></th>
+                  <th class="col-action">{{ t('inventory.add_to_list') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template v-for="cat in categories" :key="cat">
+                  <tr class="category-row">
+                    <td colspan="8">
+                      <h3 :id="getCategoryAnchor(cat)" class="category-header">{{ cat }}</h3>
+                    </td>
+                  </tr>
+
+                  <tr v-for="item in getItemsForCategory(cat)" :key="item.ingredient_id as string">
+                    <td><strong>{{ item.ingredient_name }}</strong></td>
+                    <td class="col-number">{{ parseFloat(item.quantity_bought.toFixed(2)) }}</td>
+                    <td class="col-unit">{{ item.unit }}</td>
+                    <td class="col-number">{{ parseFloat(item.quantity_required.toFixed(2)) }}</td>
+                    <td class="col-unit">{{ item.unit }}</td>
+                    <td class="col-number font-bold" :style="{ color: getBalanceColor(item.balance) }">
+                      <span v-if="item.balance > 0">+</span>{{ parseFloat(item.balance.toFixed(2)) }}
+                    </td>
+                    <td class="col-unit font-bold" :style="{ color: getBalanceColor(item.balance) }">
+                      {{ item.unit }}
+                    </td>
+                    <td class="col-action">
+                      <button class="btn btn-secondary btn-xs" title="Add to latest shopping list"
+                        @click="openAddModal(item)">
+                        🛒+
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside v-if="categories.length > 0" class="quick-nav card no-print hide-mobile">
+          <h3 class="mb-2">Quick Nav</h3>
+          <nav>
+            <ul class="quick-nav-list">
+              <li v-for="cat in categories" :key="`desktop-${cat}`">
+                <a class="quick-nav-link" :href="`#${getCategoryAnchor(cat)}`">
+                  <span>{{ cat }}</span>
+                  <span class="text-mute">{{ getItemsForCategory(cat).length }}</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </aside>
       </div>
     </div>
 
@@ -194,7 +244,38 @@ onMounted(fetchData)
 </template>
 
 <style scoped>
+.inventory-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.header-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .inventory-table {
   min-width: 800px;
+}
+
+@media (max-width: 900px) {
+  .inventory-layout {
+    display: block;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 </style>

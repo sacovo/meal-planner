@@ -42,4 +42,4 @@ RUN python3 manage.py collectstatic
 
 ENTRYPOINT ["/home/app/web/docker/entrypoint.sh"]
 
-CMD ["gunicorn", "-w", "2", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["uvicorn", "core.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
