@@ -1,76 +1,99 @@
 <script setup lang="ts">
-import MealCard from './MealCard.vue'
-import type { CampSchema, CampMealSchema } from '../client'
-import { useI18n } from '../composables/useI18n';
+import MealCard from "./MealCard.vue";
+import type { CampSchema, CampMealSchema } from "../client";
+import { useI18n } from "../composables/useI18n";
 
 const props = defineProps<{
-  camp: CampSchema
-  campDays: string[]
-  mealTypesConfig: { val: string, label: string }[]
-  mealsGrid: Record<string, Record<string, CampMealSchema[]>>
-  selectedMeals: string[]
-  recipeNames: Record<string, string>
-}>()
+  camp: CampSchema;
+  campDays: string[];
+  mealTypesConfig: { val: string; label: string }[];
+  mealsGrid: Record<string, Record<string, CampMealSchema[]>>;
+  selectedMeals: string[];
+  recipeNames: Record<string, string>;
+}>();
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: 'update:selectedMeals', val: string[]): void
-  (e: 'drop', event: DragEvent, day: string, mt: string): void
-  (e: 'edit-meal', meal: CampMealSchema): void
-  (e: 'toggle-done', meal: CampMealSchema): void
-  (e: 'remove-meal', meal: CampMealSchema): void
-  (e: 'switch-day', day: string): void
-  (e: 'toggle-day', day: string): void
-}>()
+  (e: "update:selectedMeals", val: string[]): void;
+  (e: "drop", event: DragEvent, day: string, mt: string): void;
+  (e: "edit-meal", meal: CampMealSchema): void;
+  (e: "toggle-done", meal: CampMealSchema): void;
+  (e: "remove-meal", meal: CampMealSchema): void;
+  (e: "switch-day", day: string): void;
+  (e: "toggle-day", day: string): void;
+}>();
 
 function isDaySelected(day: string) {
-  const dayMeals = getMealsForDay(day)
-  if (dayMeals.length === 0) return false
-  return dayMeals.every(m => props.selectedMeals.includes(m.id!))
+  const dayMeals = getMealsForDay(day);
+  if (dayMeals.length === 0) return false;
+  return dayMeals.every((m) => props.selectedMeals.includes(m.id!));
 }
 
 function isDayPartial(day: string) {
-  const dayMeals = getMealsForDay(day)
-  if (dayMeals.length === 0) return false
-  const selectedCount = dayMeals.filter(m => props.selectedMeals.includes(m.id!)).length
-  return selectedCount > 0 && selectedCount < dayMeals.length
+  const dayMeals = getMealsForDay(day);
+  if (dayMeals.length === 0) return false;
+  const selectedCount = dayMeals.filter((m) =>
+    props.selectedMeals.includes(m.id!),
+  ).length;
+  return selectedCount > 0 && selectedCount < dayMeals.length;
 }
 
 function getMealsForDay(day: string) {
-  if (!props.mealsGrid[day]) return []
-  return Object.values(props.mealsGrid[day]).flat()
+  if (!props.mealsGrid[day]) return [];
+  return Object.values(props.mealsGrid[day]).flat();
 }
 
 function handleMealSelection(mealId: string, isSelected: boolean) {
-  let updated = [...props.selectedMeals]
+  let updated = [...props.selectedMeals];
   if (isSelected) {
-    if (!updated.includes(mealId)) updated.push(mealId)
+    if (!updated.includes(mealId)) updated.push(mealId);
   } else {
-    updated = updated.filter(id => id !== mealId)
+    updated = updated.filter((id) => id !== mealId);
   }
-  emit('update:selectedMeals', updated)
+  emit("update:selectedMeals", updated);
 }
 </script>
 
 <template>
   <div id="planner-matrix-canvas" class="card matrix-container">
-    <h3 class="only-print title-print">{{ camp.name }} - Matrix Plan</h3>
+    <h3 class="only-print title-print">
+      {{ camp.name }} - {{ t("planner.matrix_plan") }}
+    </h3>
     <table class="planner-table">
       <thead>
         <tr>
-          <th class="sticky-col">Time</th>
+          <th class="sticky-col">{{ t("time") }}</th>
           <th v-for="day in campDays" :key="day" class="day-col">
-            <div class="flex-col items-center gap-1 group day-header-container" @click="$emit('switch-day', day)">
+            <div
+              class="flex-col items-center gap-1 group day-header-container"
+              @click="$emit('switch-day', day)"
+            >
               <div class="day-header">
-                {{ new Date(day).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) }}
+                {{
+                  new Date(day).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })
+                }}
               </div>
-              <label v-if="getMealsForDay(day).length > 0" class="flex items-center gap-1 select-day-label" @click.stop>
-                <input type="checkbox" :checked="isDaySelected(day)" :indeterminate="isDayPartial(day)"
-                  @change="$emit('toggle-day', day)" />
-                Select Day
+              <label
+                v-if="getMealsForDay(day).length > 0"
+                class="flex items-center gap-1 select-day-label"
+                @click.stop
+              >
+                <input
+                  type="checkbox"
+                  :checked="isDaySelected(day)"
+                  :indeterminate="isDayPartial(day)"
+                  @change="$emit('toggle-day', day)"
+                />
+                {{ t("planner.select_all") }}
               </label>
-              <span v-else class="text-mute empty-day-msg">{{ t('planner.no_meals') }}</span>
+              <span v-else class="text-mute empty-day-msg">{{
+                t("planner.no_meals")
+              }}</span>
             </div>
           </th>
         </tr>
@@ -78,21 +101,45 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
       <tbody>
         <tr v-for="mt in mealTypesConfig" :key="mt.val">
           <td class="sticky-col label-cell">{{ mt.label }}</td>
-          <td v-for="day in campDays" :key="day" class="droppable-cell" @dragover.prevent @dragenter.prevent
-            @drop="$emit('drop', $event, day, mt.val)">
+          <td
+            v-for="day in campDays"
+            :key="day"
+            class="droppable-cell"
+            @dragover.prevent
+            @dragenter.prevent
+            @drop="$emit('drop', $event, day, mt.val)"
+          >
             <!-- Render Assigned Meals -->
             <div class="meals-list">
-              <MealCard v-for="meal in (mealsGrid[day] && mealsGrid[day][mt.val] ? mealsGrid[day][mt.val] : [])"
-                :key="meal.id!" :meal="meal" :camp="camp" :recipe-name="recipeNames[meal.recipe as string] || 'Unknown'"
+              <MealCard
+                v-for="meal in (mealsGrid[day] && mealsGrid[day][mt.val]
+                  ? mealsGrid[day][mt.val]
+                  : []
+                ).sort((a, b) => a.id!.localeCompare(b.id!))"
+                :key="meal.id!"
+                :meal="meal"
+                :camp="camp"
+                :recipe-name="recipeNames[meal.recipe as string] || 'Unknown'"
                 :is-selected="selectedMeals.includes(meal.id!)"
-                @update:is-selected="handleMealSelection(meal.id!, $event)" @edit="$emit('edit-meal', meal)"
-                @toggle-done="$emit('toggle-done', meal)" @remove="$emit('remove-meal', meal)" />
+                @update:is-selected="handleMealSelection(meal.id!, $event)"
+                @edit="$emit('edit-meal', meal)"
+                @toggle-done="$emit('toggle-done', meal)"
+                @remove="$emit('remove-meal', meal)"
+              />
             </div>
 
             <!-- Blank Canvas Text -->
-            <div v-if="!(mealsGrid[day] && mealsGrid[day][mt.val] && mealsGrid[day][mt.val].length > 0)"
-              class="empty-drop">
-              {{ t('planner.drop_here') }}
+            <div
+              v-if="
+                !(
+                  mealsGrid[day] &&
+                  mealsGrid[day][mt.val] &&
+                  mealsGrid[day][mt.val].length > 0
+                )
+              "
+              class="empty-drop"
+            >
+              {{ t("planner.drop_here") }}
             </div>
           </td>
         </tr>

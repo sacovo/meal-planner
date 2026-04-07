@@ -1,34 +1,36 @@
 <script setup lang="ts">
-import CampCollaborators from './CampCollaborators.vue'
-import { useI18n } from '../composables/useI18n'
+import CampCollaborators from "./CampCollaborators.vue";
+import { useI18n } from "../composables/useI18n";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 defineProps<{
-  show: boolean
-  collaborators: string[]
-  ownerUsername: string
-  currentUserUsername: string
-}>()
+  show: boolean;
+  collaborators: string[];
+  ownerUsername: string;
+  currentUserUsername: string;
+}>();
 
 defineEmits<{
-  (e: 'update:show', val: boolean): void
-  (e: 'invite', username: string): void
-  (e: 'remove', username: string): void
-}>()
+  (e: "update:show", val: boolean): void;
+  (e: "invite", username: string): void;
+  (e: "remove", username: string): void;
+}>();
 </script>
 
 <template>
   <div v-if="show" class="modal-backdrop" @click="$emit('update:show', false)">
     <div class="modal" @click.stop>
       <div class="flex justify-between items-center mb-4">
-        <h3 class="modal-title m-0">{{ t('collab.title') }}</h3>
-        <button class="btn-close" @click="$emit('update:show', false)">×</button>
+        <h3 class="modal-title m-0">{{ t("collab.title") }}</h3>
+        <button class="btn-close" @click="$emit('update:show', false)">
+          ×
+        </button>
       </div>
-      
+
       <div class="modal-body p-0">
-        <CampCollaborators 
-          :collaborators="collaborators" 
+        <CampCollaborators
+          :collaborators="collaborators"
           :owner-username="ownerUsername"
           :current-user-username="currentUserUsername"
           @invite="$emit('invite', $event)"

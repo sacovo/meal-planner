@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import type { ShoppingListOverviewSchema } from '../client'
-import { useI18n } from '../composables/useI18n'
+import type { ShoppingListOverviewSchema } from "../client";
+import { useI18n } from "../composables/useI18n";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const props = defineProps<{
-  selectedMealsCount: number
-  showShoppingLists: boolean
-  shoppingLists: ShoppingListOverviewSchema[]
-  loading: boolean
-}>()
+  selectedMealsCount: number;
+  showShoppingLists: boolean;
+  shoppingLists: ShoppingListOverviewSchema[];
+  loading: boolean;
+}>();
 
 defineEmits<{
-  (e: 'update:showShoppingLists', val: boolean): void
-  (e: 'generate'): void
-  (e: 'delete', id: string): void
-  (e: 'open', token: string): void
-}>()
+  (e: "update:showShoppingLists", val: boolean): void;
+  (e: "generate"): void;
+  (e: "delete", id: string): void;
+  (e: "open", token: string): void;
+}>();
 
 function groupMealsByDay(messages: string[]) {
-  const groups: Record<string, string[]> = {}
+  const groups: Record<string, string[]> = {};
   for (const msg of messages) {
-    const match = msg.match(/^(.*?)\s+\((.*?)\):\s+(.*)$/)
+    const match = msg.match(/^(.*?)\s+\((.*?)\):\s+(.*)$/);
     if (match) {
-      const day = match[1]
-      const type = match[2]
-      const recipe = match[3]
-      if (!groups[day]) groups[day] = []
-      groups[day].push(`${type}: ${recipe}`)
+      const day = match[1];
+      const type = match[2];
+      const recipe = match[3];
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(`${type}: ${recipe}`);
     } else {
-      if (!groups['Other']) groups['Other'] = []
-      groups['Other'].push(msg)
+      if (!groups["Other"]) groups["Other"] = [];
+      groups["Other"].push(msg);
     }
   }
-  return groups
+  return groups;
 }
 </script>
 
@@ -41,57 +41,95 @@ function groupMealsByDay(messages: string[]) {
   <div class="shopping-manager">
     <!-- Shopping Generate Action -->
     <div class="card flex justify-between items-center action-bar">
-      <p class="summary-text"><strong>{{ t('shopping.title') }}:</strong> {{ selectedMealsCount }} {{ t('misc.meals') }}
+      <p class="summary-text">
+        <strong>{{ t("shopping.title") }}:</strong> {{ selectedMealsCount }}
+        {{ t("misc.meals") }}
       </p>
       <div class="flex gap-2 buttons">
-        <button class="btn btn-secondary" @click="$emit('update:showShoppingLists', !showShoppingLists)">
-          🛍️ {{ showShoppingLists ? t('btn.close') : t('planner.shopping_lists') }}
+        <button
+          class="btn btn-secondary"
+          @click="$emit('update:showShoppingLists', !showShoppingLists)"
+        >
+          🛍️
+          {{ showShoppingLists ? t("btn.close") : t("planner.shopping_lists") }}
         </button>
-        <button class="btn btn-primary" @click="$emit('generate')">📋 {{ t('shopping.generate') }}</button>
+        <button class="btn btn-primary" @click="$emit('generate')">
+          📋 {{ t("shopping.generate") }}
+        </button>
       </div>
     </div>
 
     <!-- Inline Shopping Lists Manager -->
     <div v-show="showShoppingLists" class="card lists-container">
       <div class="flex justify-between items-center header">
-        <h3 class="title">{{ t('shopping.title') }}</h3>
+        <h3 class="title">{{ t("shopping.title") }}</h3>
       </div>
 
-      <div v-if="loading" class="text-center py-4 text-mute">{{ t('btn.loading') }}</div>
+      <div v-if="loading" class="text-center py-4 text-mute">
+        {{ t("btn.loading") }}
+      </div>
 
-      <div v-else-if="shoppingLists.length === 0" class="text-center py-4 text-mute empty-msg">
-        {{ t('shopping.no_items') }}
+      <div
+        v-else-if="shoppingLists.length === 0"
+        class="text-center py-4 text-mute empty-msg"
+      >
+        {{ t("shopping.no_items") }}
       </div>
 
       <div v-else class="flex-col gap-4 lists">
-        <div v-for="sl in shoppingLists" :key="sl.id as string" class="card border flex-col gap-2 shadow-sm list-card">
+        <div
+          v-for="sl in shoppingLists"
+          :key="sl.id as string"
+          class="card border flex-col gap-2 shadow-sm list-card"
+        >
           <div class="flex justify-between items-start list-header">
-            <strong class="list-date">{{ t('shopping.list_from') }} {{ new Date(sl.created_at).toLocaleString([], {
-              dateStyle: 'short',
-              timeStyle: 'short'
-            }) }}</strong>
+            <strong class="list-date"
+              >{{ t("shopping.list_from") }}
+              {{
+                new Date(sl.created_at).toLocaleString([], {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })
+              }}</strong
+            >
             <div class="flex gap-2 list-actions">
-              <button class="btn btn-secondary action-btn" @click="$emit('open', sl.shared_token as string)"> ⚙️ {{
-                t('btn.edit') }}</button>
-              <button class="btn delete-btn" @click="$emit('delete', sl.id as string)">🗑️ {{ t('btn.delete')
-              }}</button>
+              <button
+                class="btn btn-secondary action-btn"
+                @click="$emit('open', sl.shared_token as string)"
+              >
+                ⚙️ {{ t("btn.edit") }}
+              </button>
+              <button
+                class="btn delete-btn"
+                @click="$emit('delete', sl.id as string)"
+              >
+                🗑️ {{ t("btn.delete") }}
+              </button>
             </div>
           </div>
 
           <div class="meals-summary">
-            <strong class="meals-title">{{ t('shopping.included_meals') }} ({{ sl.included_meals.length }})</strong>
+            <strong class="meals-title"
+              >{{ t("shopping.included_meals") }} ({{
+                sl.included_meals.length
+              }})</strong
+            >
 
             <div class="meal-groups-grid" v-if="sl.included_meals.length > 0">
-              <div v-for="(meals, day) in groupMealsByDay(sl.included_meals)" :key="day" class="day-group">
+              <div
+                v-for="(meals, day) in groupMealsByDay(sl.included_meals)"
+                :key="day"
+                class="day-group"
+              >
                 <div class="day-name">{{ day }}</div>
                 <div v-for="(m, i) in meals" :key="i" class="meal-item">
-                  <span>{{ m.split(':')[1] }}</span>
+                  <span>{{ m.split(":")[1] }}</span>
                 </div>
               </div>
             </div>
 
             <div v-else class="text-mute empty-meals">
-              {{ t('shopping.no_meals') }}
+              {{ t("shopping.no_meals") }}
             </div>
           </div>
         </div>

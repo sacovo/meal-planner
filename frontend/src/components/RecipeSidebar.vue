@@ -1,102 +1,159 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { type RecipeSchema, type DietaryPreferenceSchema } from '../client'
-import TagInput from './TagInput.vue'
-import { useI18n } from '../composables/useI18n'
-import { useRecipeList } from '../composables/useRecipeList'
+import { ref, watch, onMounted } from "vue";
+import { type RecipeSchema, type DietaryPreferenceSchema } from "../client";
+import TagInput from "./TagInput.vue";
+import { useI18n } from "../composables/useI18n";
+import { useRecipeList } from "../composables/useRecipeList";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const props = defineProps<{
-  preferences: DietaryPreferenceSchema[]
-  allTags: string[]
-  searchQuery: string
-  isCollapsed: boolean
-}>()
+  preferences: DietaryPreferenceSchema[];
+  allTags: string[];
+  searchQuery: string;
+  isCollapsed: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update:searchQuery', val: string): void
-  (e: 'update:isCollapsed', val: boolean): void
-  (e: 'dragstart', event: DragEvent, recipe: RecipeSchema): void
-}>()
+  (e: "update:searchQuery", val: string): void;
+  (e: "update:isCollapsed", val: boolean): void;
+  (e: "dragstart", event: DragEvent, recipe: RecipeSchema): void;
+}>();
 
-const selectedTags = ref<string[]>([])
-const selectedPreferenceId = ref<number | null>(null)
-const searchQueryLocal = ref(props.searchQuery)
+const selectedTags = ref<string[]>([]);
+const selectedPreferenceId = ref<number | null>(null);
+const searchQueryLocal = ref(props.searchQuery);
 
-watch(() => props.searchQuery, (v) => { searchQueryLocal.value = v })
+watch(
+  () => props.searchQuery,
+  (v) => {
+    searchQueryLocal.value = v;
+  },
+);
 
 const { recipes, isLoading, hasMore, fetchRecipes, loadMore } = useRecipeList({
   searchQuery: searchQueryLocal,
   selectedTags,
   selectedPreferenceId,
   autoWatch: false,
-})
+});
 
-watch(() => props.searchQuery, () => fetchRecipes(true))
-watch([selectedTags, selectedPreferenceId], () => fetchRecipes(true))
+watch(
+  () => props.searchQuery,
+  () => fetchRecipes(true),
+);
+watch([selectedTags, selectedPreferenceId], () => fetchRecipes(true));
 
-onMounted(() => fetchRecipes())
+onMounted(() => fetchRecipes());
 
 function onDragStart(event: DragEvent, recipe: RecipeSchema) {
-  emit('dragstart', event, recipe)
+  emit("dragstart", event, recipe);
 }
 </script>
 
 <template>
-  <div class="card flex-col gap-2 sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
-    <button class="btn btn-secondary toggle-sidebar-btn shadow-md" @click="$emit('update:isCollapsed', !isCollapsed)"
-      :title="isCollapsed ? 'Show Menu Pool' : 'Hide Menu Pool'">
-      {{ isCollapsed ? '»' : '«' }}
+  <div
+    class="card flex-col gap-2 sidebar"
+    :class="{ 'sidebar-collapsed': isCollapsed }"
+  >
+    <button
+      class="btn btn-secondary toggle-sidebar-btn shadow-md"
+      @click="$emit('update:isCollapsed', !isCollapsed)"
+      :title="
+        isCollapsed ? t('planner.show_menu_pool') : t('planner.hide_menu_pool')
+      "
+    >
+      {{ isCollapsed ? "»" : "«" }}
     </button>
 
     <div v-show="!isCollapsed" class="flex-col gap-2 content">
-      <h3>{{ t('planner.menu_pool') }}</h3>
-      <p class="text-mute subtitle">{{ t('recipe.search_placeholder') }}</p>
+      <h3>{{ t("planner.menu_pool") }}</h3>
+      <p class="text-mute subtitle">{{ t("recipe.search_placeholder") }}</p>
 
       <div class="flex-col gap-1.5 filters-area">
-        <input type="text" class="input search-input" :value="searchQuery"
-          @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
-          :placeholder="t('recipe.search_placeholder')" />
+        <input
+          type="text"
+          class="input search-input"
+          :value="searchQuery"
+          @input="
+            $emit(
+              'update:searchQuery',
+              ($event.target as HTMLInputElement).value,
+            )
+          "
+          :placeholder="t('recipe.search_placeholder')"
+        />
 
-        <TagInput v-model="selectedTags" :suggestions="allTags" :placeholder="t('planner.filter')"
-          class="sidebar-tag-input" />
+        <TagInput
+          v-model="selectedTags"
+          :suggestions="allTags"
+          :placeholder="t('planner.filter')"
+          class="sidebar-tag-input"
+        />
 
         <select v-model="selectedPreferenceId" class="input filter-select">
-          <option :value="null">{{ t('planner.all_recipes') }}</option>
-          <option v-for="p in preferences" :key="p.id!" :value="p.id">{{ p.name }}</option>
+          <option :value="null">{{ t("planner.all_recipes") }}</option>
+          <option v-for="p in preferences" :key="p.id!" :value="p.id">
+            {{ p.name }}
+          </option>
         </select>
       </div>
 
       <div class="recipes-list flex-col gap-2">
-        <div v-for="recipe in recipes" :key="recipe.id!" class="recipe-draggable" draggable="true"
-          @dragstart="onDragStart($event, recipe)">
+        <div
+          v-for="recipe in recipes"
+          :key="recipe.id!"
+          class="recipe-draggable"
+          draggable="true"
+          @dragstart="onDragStart($event, recipe)"
+        >
           <div class="flex justify-between items-start header-row">
-            <strong class="recipe-name" :title="recipe.name">{{ recipe.name }}</strong>
-            <span class="text-mute portions">{{ recipe.default_portions }}p</span>
+            <strong class="recipe-name" :title="recipe.name">{{
+              recipe.name
+            }}</strong>
+            <span class="text-mute portions"
+              >{{ recipe.default_portions }}p</span
+            >
           </div>
-          <div class="flex gap-1 flex-wrap badges-row" v-if="recipe.preferences && recipe.preferences.length > 0">
-            <span v-for="pref in recipe.preferences" :key="pref.id!" class="badge-tiny">
+          <div
+            class="flex gap-1 flex-wrap badges-row"
+            v-if="recipe.preferences && recipe.preferences.length > 0"
+          >
+            <span
+              v-for="pref in recipe.preferences"
+              :key="pref.id!"
+              class="badge-tiny"
+            >
               {{ pref.name }}
             </span>
           </div>
         </div>
 
-        <div v-if="recipes.length === 0 && !isLoading" class="text-mute text-center p-4">
-          {{ t('recipe.no_results') }}
+        <div
+          v-if="recipes.length === 0 && !isLoading"
+          class="text-mute text-center p-4"
+        >
+          {{ t("recipe.no_results") }}
         </div>
 
         <div v-if="hasMore" class="flex justify-center mt-2 mb-4">
-          <button class="btn btn-secondary btn-xs" @click="loadMore" :disabled="isLoading">
-            {{ isLoading ? '...' : t('btn.search') }}
+          <button
+            class="btn btn-secondary btn-xs"
+            @click="loadMore"
+            :disabled="isLoading"
+          >
+            {{ isLoading ? "..." : t("btn.search") }}
           </button>
         </div>
       </div>
     </div>
 
-    <div v-show="isCollapsed" class="flex-col items-center justify-center h-full collapsed-indicator">
+    <div
+      v-show="isCollapsed"
+      class="flex-col items-center justify-center h-full collapsed-indicator"
+    >
       <div class="vertical-text">
-        {{ t('planner.menu_pool') }}
+        {{ t("planner.menu_pool") }}
       </div>
     </div>
   </div>
@@ -109,8 +166,6 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   position: relative;
   overflow: visible;
 }
-
-
 
 .toggle-sidebar-btn {
   position: absolute;
@@ -179,7 +234,9 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   border-radius: var(--radius-sm);
   cursor: grab;
   user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .recipe-draggable:active {

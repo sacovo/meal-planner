@@ -1,31 +1,58 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterView, RouterLink } from 'vue-router'
-import { useI18n } from './composables/useI18n'
+import { ref } from "vue";
+import { RouterView, RouterLink, useRouter } from "vue-router";
+import { useI18n } from "./composables/useI18n";
+import { useMessages } from "./composables/useMessages";
+import Toast from "typescript-toastify";
 
-const { t, locale, setLocale } = useI18n()
-const isMenuOpen = ref(false)
+const router = useRouter();
+const { fetchMessages } = useMessages();
+
+router.afterEach(async () => {
+  const messages = await fetchMessages();
+
+  for (const [level, msg] of messages) {
+    new Toast({
+      position: "top-right",
+      toastMsg: msg,
+      type: level === "error" ? "error" : "success",
+      autoCloseTime: 1000000,
+    });
+  }
+});
+const { t, locale, setLocale } = useI18n();
+const isMenuOpen = ref(false);
 
 const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-}
+  isMenuOpen.value = !isMenuOpen.value;
+};
 
 const closeMenu = () => {
-  isMenuOpen.value = false
-}
+  isMenuOpen.value = false;
+};
 </script>
 
 <template>
   <div>
     <nav class="navbar">
       <div class="container navbar-content">
-        <RouterLink to="/" class="navbar-brand" @click="closeMenu" aria-label="Home">
+        <RouterLink
+          to="/"
+          class="navbar-brand"
+          @click="closeMenu"
+          aria-label="Home"
+        >
           <img src="/logo.png" alt="Logo" class="navbar-logo" />
-          <span class="navbar-app-name">{{ t('nav.app_name') }}</span>
+          <span class="navbar-app-name">{{ t("nav.app_name") }}</span>
         </RouterLink>
 
         <!-- Hamburger Button -->
-        <button class="menu-toggle" :class="{ active: isMenuOpen }" @click="toggleMenu" aria-label="Toggle Navigation">
+        <button
+          class="menu-toggle"
+          :class="{ active: isMenuOpen }"
+          @click="toggleMenu"
+          aria-label="Toggle Navigation"
+        >
           <span class="hamburger-line"></span>
           <span class="hamburger-line"></span>
           <span class="hamburger-line"></span>
@@ -33,17 +60,40 @@ const closeMenu = () => {
 
         <div class="nav-container" :class="{ 'menu-open': isMenuOpen }">
           <div class="nav-links">
-            <RouterLink to="/" class="nav-link" @click="closeMenu"> 🏕️ {{ t('nav.camps') }}</RouterLink>
-            <RouterLink to="/recipes" class="nav-link" @click="closeMenu"> 🥘 {{ t('nav.recipes') }}</RouterLink>
-            <RouterLink to="/account" class="nav-link" aria-label="Account Settings" @click="closeMenu">👤 {{
-              t('nav.account') }}</RouterLink>
+            <RouterLink to="/" class="nav-link" @click="closeMenu">
+              🏕️ {{ t("nav.camps") }}</RouterLink
+            >
+            <RouterLink to="/recipes" class="nav-link" @click="closeMenu">
+              🥘 {{ t("nav.recipes") }}</RouterLink
+            >
+            <RouterLink
+              to="/account"
+              class="nav-link"
+              aria-label="Account Settings"
+              @click="closeMenu"
+              >👤 {{ t("nav.account") }}</RouterLink
+            >
           </div>
 
           <div class="lang-switcher">
-            <button id="lang-de" class="lang-btn" :class="{ active: locale === 'de' }" @click="setLocale('de')"
-              title="Deutsch">🇩🇪</button>
-            <button id="lang-fr" class="lang-btn" :class="{ active: locale === 'fr' }" @click="setLocale('fr')"
-              title="Français">🇫🇷</button>
+            <button
+              id="lang-de"
+              class="lang-btn"
+              :class="{ active: locale === 'de' }"
+              @click="setLocale('de')"
+              title="Deutsch"
+            >
+              🇩🇪
+            </button>
+            <button
+              id="lang-fr"
+              class="lang-btn"
+              :class="{ active: locale === 'fr' }"
+              @click="setLocale('fr')"
+              title="Français"
+            >
+              🇫🇷
+            </button>
           </div>
         </div>
       </div>
@@ -84,7 +134,11 @@ const closeMenu = () => {
 }
 
 .navbar-app-name {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-hover)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -141,7 +195,9 @@ const closeMenu = () => {
   padding: 2px 4px;
   line-height: 1;
   opacity: 0.5;
-  transition: opacity 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.15s,
+    border-color 0.15s;
 }
 
 .lang-btn:hover {
@@ -182,7 +238,9 @@ const closeMenu = () => {
     background: var(--color-bg-surface);
     flex-direction: column;
     overflow: hidden;
-    transition: height 0.3s ease-in-out, box-shadow 0.3s ease;
+    transition:
+      height 0.3s ease-in-out,
+      box-shadow 0.3s ease;
     z-index: 40;
     padding: 0;
     gap: 0;

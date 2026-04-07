@@ -1,0 +1,27 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans %}
+
+Hallo,
+
+Du wurdest eingeladen, {{ site_name }} zu nutzen!
+
+Um deinen Account zu aktivieren, musst du dich registrieren, indem du auf den folgenden Link klickst:
+{{ invite_url }}
+
+
+Falls du diese Einladung nicht angefordert hast, kannst du diese E-Mail ignorieren.
+
+******
+
+Bonjour,
+
+Tu as été invité à utiliser {{ site_name }} !
+
+Pour activer ton compte, tu dois t'inscrire en cliquant sur le lien ci-dessous :
+{{ invite_url }}
+
+Si tu n'as pas demandé cette invitation, tu peux ignorer cet e-mail.
+
+{% endblocktrans %}
+{% endautoescape %}

@@ -1,164 +1,199 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useRoute } from "vue-router";
 import {
   mealsApiShoppingGetSharedShoppingList,
   mealsApiShoppingToggleSharedShoppingItem,
   coreApiGetCurrentUserStatus,
   mealsApiShoppingExportSharedShoppingList,
   type ShoppingListSchema,
-  type ShoppingListItemSchema
-} from '../client'
-import { useFileDownload } from '../composables/useFileDownload'
-import { useI18n } from '@/composables/useI18n'
-import { useSSE } from '@/composables/useSSE'
+  type ShoppingListItemSchema,
+} from "../client";
+import { useFileDownload } from "../composables/useFileDownload";
+import { useI18n } from "@/composables/useI18n";
+import { useSSE } from "@/composables/useSSE";
 
-const route = useRoute()
-const { downloadBlob } = useFileDownload()
-const { t } = useI18n()
-const sharedToken = route.params.token as string
+const route = useRoute();
+const { downloadBlob } = useFileDownload();
+const { t } = useI18n();
+const sharedToken = route.params.token as string;
 
-const shoppingList = ref<ShoppingListSchema | null>(null)
-const isLoggedIn = ref(false)
-const isNavOpen = ref(false)
+const shoppingList = ref<ShoppingListSchema | null>(null);
+const isLoggedIn = ref(false);
+const isNavOpen = ref(false);
 
-const sseUrl = computed(() => `/api/meals/shared/shopping-lists/${sharedToken}/events`)
-const { on } = useSSE(() => sseUrl.value)
+const sseUrl = computed(
+  () => `/api/meals/shared/shopping-lists/${sharedToken}/events`,
+);
+const { on } = useSSE(() => sseUrl.value);
 
 async function checkAuth() {
-  const { data } = await coreApiGetCurrentUserStatus()
+  const { data } = await coreApiGetCurrentUserStatus();
   if (data?.is_logged_in) {
-    isLoggedIn.value = true
+    isLoggedIn.value = true;
   }
 }
-const collapsedCategories = ref<Record<string, boolean>>({})
+const collapsedCategories = ref<Record<string, boolean>>({});
 
 function toggleCategory(cat: string) {
-  collapsedCategories.value[cat] = !collapsedCategories.value[cat]
+  collapsedCategories.value[cat] = !collapsedCategories.value[cat];
 }
 
 async function fetchList() {
   const { data } = await mealsApiShoppingGetSharedShoppingList({
-    path: { token: sharedToken }
-  })
+    path: { token: sharedToken },
+  });
   if (data) {
-    shoppingList.value = data
+    shoppingList.value = data;
   }
 }
 
 // Perform optimistic update
 async function toggleItem(item: ShoppingListItemSchema) {
-  item.is_checked = !item.is_checked
+  item.is_checked = !item.is_checked;
 
   const { data } = await mealsApiShoppingToggleSharedShoppingItem({
-    path: { token: sharedToken, item_id: String(item.id!) }
-  })
+    path: { token: sharedToken, item_id: String(item.id!) },
+  });
 
   if (data) {
-    item.is_checked = data.is_checked
+    item.is_checked = data.is_checked;
   }
 }
 
 // Aggregation by category
 const itemsByCategory = computed(() => {
-  if (!shoppingList.value?.items) return {}
-  const grouped: Record<string, ShoppingListItemSchema[]> = {}
+  if (!shoppingList.value?.items) return {};
+  const grouped: Record<string, ShoppingListItemSchema[]> = {};
   shoppingList.value.items.forEach((item: any) => {
-    if (!grouped[item.category]) grouped[item.category] = []
-    grouped[item.category].push(item)
-  })
-  return grouped
-})
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push(item);
+  });
+  return grouped;
+});
 
-const categoryEntries = computed(() => Object.entries(itemsByCategory.value))
+const categoryEntries = computed(() => Object.entries(itemsByCategory.value));
 
 const categoryCounts = computed(() => {
-  const counts: Record<string, { done: number, total: number }> = {}
-  if (!shoppingList.value) return counts
-  shoppingList.value.items.forEach(item => {
-    const cat = item.category
-    if (!counts[cat]) counts[cat] = { done: 0, total: 0 }
-    counts[cat].total++
-    if (item.is_checked) counts[cat].done++
-  })
-  return counts
-})
+  const counts: Record<string, { done: number; total: number }> = {};
+  if (!shoppingList.value) return counts;
+  shoppingList.value.items.forEach((item) => {
+    const cat = item.category;
+    if (!counts[cat]) counts[cat] = { done: 0, total: 0 };
+    counts[cat].total++;
+    if (item.is_checked) counts[cat].done++;
+  });
+  return counts;
+});
 
 async function exportExcel() {
   const res = await mealsApiShoppingExportSharedShoppingList({
     path: { token: sharedToken },
-    parseAs: 'blob'
-  })
+    parseAs: "blob",
+  });
   if (res.data) {
-    downloadBlob(res.data as unknown as Blob, 'shopping_list.xlsx')
+    downloadBlob(res.data as unknown as Blob, "shopping_list.xlsx");
   }
 }
 
 function copyLink() {
-  const url = window.location.href
-  navigator.clipboard.writeText(url)
-  alert("Link copied to clipboard! Anyone with this link can check off items.")
+  const url = window.location.href;
+  navigator.clipboard.writeText(url);
+  alert("Link copied to clipboard! Anyone with this link can check off items.");
 }
 
 function getCategoryAnchor(category: string) {
-  return `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`
+  return `category-${category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")}`;
 }
 
 function closeNav() {
-  isNavOpen.value = false
+  isNavOpen.value = false;
 }
 
 onMounted(() => {
-  fetchList()
-  checkAuth()
+  fetchList();
+  checkAuth();
 
-  on('message', (updatedItem: ShoppingListItemSchema) => {
+  on("message", (updatedItem: ShoppingListItemSchema) => {
     if (shoppingList.value && shoppingList.value.items) {
-      const idx = shoppingList.value.items.findIndex((i: any) => i.id === updatedItem.id)
+      const idx = shoppingList.value.items.findIndex(
+        (i: any) => i.id === updatedItem.id,
+      );
       if (idx !== -1) {
-        shoppingList.value.items[idx] = updatedItem
+        shoppingList.value.items[idx] = updatedItem;
       } else {
         // Fallback: If item is completely new, refetch entire list
-        fetchList()
+        fetchList();
       }
     }
-  })
-})
+  });
+});
 
-onUnmounted(() => {
-})
+onUnmounted(() => {});
 </script>
 
 <template>
   <div v-if="shoppingList" class="flex-col gap-4">
     <div class="card shared-header">
       <div class="header-top">
-        <RouterLink v-if="isLoggedIn && shoppingList" :to="`/camps/${shoppingList.camp_id}`" class="badge mb-2">{{
-          t('btn.back') }}</RouterLink>
+        <RouterLink
+          v-if="isLoggedIn && shoppingList"
+          :to="`/camps/${shoppingList.camp_id}`"
+          class="badge mb-2"
+          >{{ t("btn.back") }}</RouterLink
+        >
         <h2 class="page-title">Live Shopping List</h2>
         <p class="text-mute text-sm">Changes are synchronized in real-time.</p>
       </div>
       <div class="header-actions">
-        <button v-if="categoryEntries.length > 0" class="btn btn-secondary quick-nav-toggle hide-desktop" @click="isNavOpen = true">
+        <button
+          v-if="categoryEntries.length > 0"
+          class="btn btn-secondary quick-nav-toggle hide-desktop"
+          @click="isNavOpen = true"
+        >
           ☰ Quick Nav
         </button>
-        <button class="btn btn-secondary" @click="exportExcel">📥 Export</button>
-        <button class="btn btn-secondary" @click="copyLink">🔗 Share Link</button>
+        <button class="btn btn-secondary" @click="exportExcel">
+          📥 Export
+        </button>
+        <button class="btn btn-secondary" @click="copyLink">
+          🔗 Share Link
+        </button>
       </div>
     </div>
 
-    <div v-if="categoryEntries.length > 0" class="drawer-backdrop no-print hide-desktop" :class="{ open: isNavOpen }"
-      @click="closeNav" />
+    <div
+      v-if="categoryEntries.length > 0"
+      class="drawer-backdrop no-print hide-desktop"
+      :class="{ open: isNavOpen }"
+      @click="closeNav"
+    />
 
-    <aside v-if="categoryEntries.length > 0" class="quick-nav-drawer no-print hide-desktop" :class="{ open: isNavOpen }">
+    <aside
+      v-if="categoryEntries.length > 0"
+      class="quick-nav-drawer no-print hide-desktop"
+      :class="{ open: isNavOpen }"
+    >
       <div class="drawer-header">
         <h3 class="mb-0">Quick Nav</h3>
-        <button class="btn btn-secondary btn-sm" @click="closeNav">Close</button>
+        <button class="btn btn-secondary btn-sm" @click="closeNav">
+          Close
+        </button>
       </div>
       <nav>
         <ul class="quick-nav-list">
-          <li v-for="([category, items]) in categoryEntries" :key="`drawer-${category}`">
-            <a class="quick-nav-link" :href="`#${getCategoryAnchor(category)}`" @click="closeNav">
+          <li
+            v-for="[category, items] in categoryEntries"
+            :key="`drawer-${category}`"
+          >
+            <a
+              class="quick-nav-link"
+              :href="`#${getCategoryAnchor(category)}`"
+              @click="closeNav"
+            >
               <span>{{ category }}</span>
               <span class="text-mute">{{ items.length }}</span>
             </a>
@@ -170,69 +205,136 @@ onUnmounted(() => {
     <div class="shared-layout">
       <div class="flex-col gap-4">
         <!-- Grouped Categories -->
-        <div v-for="([category, items]) in categoryEntries" :id="getCategoryAnchor(category)" :key="category" class="card"
-          :class="{ 'category-done': categoryCounts[category as string].done === categoryCounts[category as string].total }">
-          <div class="category-toggle flex justify-between items-center" @click="toggleCategory(category as string)">
+        <div
+          v-for="[category, items] in categoryEntries"
+          :id="getCategoryAnchor(category)"
+          :key="category"
+          class="card"
+          :class="{
+            'category-done':
+              categoryCounts[category as string].done ===
+              categoryCounts[category as string].total,
+          }"
+        >
+          <div
+            class="category-toggle flex justify-between items-center"
+            @click="toggleCategory(category as string)"
+          >
             <div class="flex items-center gap-2">
-              <h3 class="category-heading"
-                :class="{ 'text-success': categoryCounts[category as string].done === categoryCounts[category as string].total }">
-                {{ categoryCounts[category as string].done === categoryCounts[category as string].total ? '✓ ' : '' }}{{
-                  category }}
+              <h3
+                class="category-heading"
+                :class="{
+                  'text-success':
+                    categoryCounts[category as string].done ===
+                    categoryCounts[category as string].total,
+                }"
+              >
+                {{
+                  categoryCounts[category as string].done ===
+                  categoryCounts[category as string].total
+                    ? "✓ "
+                    : ""
+                }}{{ category }}
               </h3>
               <span class="text-xs text-mute category-count">
-                ({{ categoryCounts[category as string].done }} / {{ categoryCounts[category as string].total }} done)
+                ({{ categoryCounts[category as string].done }} /
+                {{ categoryCounts[category as string].total }} done)
               </span>
             </div>
             <span class="collapse-icon text-mute">
-              {{ collapsedCategories[category as string] ? '+' : '−' }}
+              {{ collapsedCategories[category as string] ? "+" : "−" }}
             </span>
           </div>
 
-          <ul v-show="!collapsedCategories[category as string]" class="list-reset flex-col gap-2 mt-4">
-            <li v-for="item in items" :key="item.id!" class="shopping-item"
-              :class="{ 'checked-item text-mute': item.is_checked }" @click="toggleItem(item)">
-              <div class="checkbox" :class="{ 'checked': item.is_checked }">
-                {{ item.is_checked ? '✓' : '' }}
+          <ul
+            v-show="!collapsedCategories[category as string]"
+            class="list-reset flex-col gap-2 mt-4"
+          >
+            <li
+              v-for="item in items"
+              :key="item.id!"
+              class="shopping-item"
+              :class="{ 'checked-item text-mute': item.is_checked }"
+              @click="toggleItem(item)"
+            >
+              <div class="checkbox" :class="{ checked: item.is_checked }">
+                {{ item.is_checked ? "✓" : "" }}
               </div>
 
-              <div class="item-content" :class="{ 'line-through': item.is_checked }">
+              <div
+                class="item-content"
+                :class="{ 'line-through': item.is_checked }"
+              >
                 <div class="item-name">
-                  <strong v-if="item.ingredient">{{ (item as any).ingredient.name }}</strong>
+                  <strong v-if="item.ingredient">{{
+                    (item as any).ingredient.name
+                  }}</strong>
                   <strong v-else>{{ item.custom_name }}</strong>
                 </div>
 
-                <div class="item-sources" v-if="item.source_meals_text && item.source_meals_text.length" @click.stop>
+                <div
+                  class="item-sources"
+                  v-if="item.source_meals_text && item.source_meals_text.length"
+                  @click.stop
+                >
                   <!-- Mobile Collapsible -->
                   <details class="source-details hidden-desktop">
-                    <summary class="text-mute">{{ item.source_meals_text.length }} Menus (Show)</summary>
+                    <summary class="text-mute">
+                      {{ item.source_meals_text.length }} Menus (Show)
+                    </summary>
                     <ul>
-                      <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
+                      <li
+                        v-for="(src, idx) in item.source_meals_text"
+                        :key="idx"
+                      >
+                        {{ src }}
+                      </li>
                     </ul>
                   </details>
 
                   <!-- Desktop flat list -->
                   <div class="source-desktop hidden-mobile text-mute">
                     <ul :class="{ 'no-line-through': item.is_checked }">
-                      <li v-for="(src, idx) in item.source_meals_text" :key="idx">{{ src }}</li>
+                      <li
+                        v-for="(src, idx) in item.source_meals_text"
+                        :key="idx"
+                      >
+                        {{ src }}
+                      </li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              <div class="item-measurement text-right text-mute" :class="{ 'line-through': item.is_checked }">
-                <strong>{{ parseFloat((item.amount).toFixed(2)) }} {{ item.unit }}</strong>
+              <div
+                class="item-measurement text-right text-mute"
+                :class="{ 'line-through': item.is_checked }"
+              >
+                <strong
+                  >{{ parseFloat(item.amount.toFixed(2)) }}
+                  {{ item.unit }}</strong
+                >
               </div>
             </li>
           </ul>
         </div>
       </div>
 
-      <aside v-if="categoryEntries.length > 0" class="quick-nav card no-print hide-mobile">
+      <aside
+        v-if="categoryEntries.length > 0"
+        class="quick-nav card no-print hide-mobile"
+      >
         <h3 class="mb-2">Quick Nav</h3>
         <nav>
           <ul class="quick-nav-list">
-            <li v-for="([category, items]) in categoryEntries" :key="`desktop-${category}`">
-              <a class="quick-nav-link" :href="`#${getCategoryAnchor(category)}`">
+            <li
+              v-for="[category, items] in categoryEntries"
+              :key="`desktop-${category}`"
+            >
+              <a
+                class="quick-nav-link"
+                :href="`#${getCategoryAnchor(category)}`"
+              >
                 <span>{{ category }}</span>
                 <span class="text-mute">{{ items.length }}</span>
               </a>
@@ -241,10 +343,9 @@ onUnmounted(() => {
         </nav>
       </aside>
     </div>
-
   </div>
   <div v-else class="text-center text-mute py-8">
-    {{ t('loading') }}
+    {{ t("loading") }}
   </div>
 </template>
 

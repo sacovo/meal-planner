@@ -1,75 +1,93 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useI18n } from '../composables/useI18n'
+import { ref, computed } from "vue";
+import { useI18n } from "../composables/useI18n";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const props = defineProps<{
-  collaborators: string[]
-  ownerUsername: string
-  currentUserUsername: string
-}>()
+  collaborators: string[];
+  ownerUsername: string;
+  currentUserUsername: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'invite', username: string): void
-  (e: 'remove', username: string): void
-}>()
+  (e: "invite", username: string): void;
+  (e: "remove", username: string): void;
+}>();
 
-const newUsername = ref('')
+const newUsername = ref("");
 
 function handleInvite() {
   if (newUsername.value.trim()) {
-    emit('invite', newUsername.value.trim())
-    newUsername.value = ''
+    emit("invite", newUsername.value.trim());
+    newUsername.value = "";
   }
 }
 
-const isOwner = computed(() => props.ownerUsername === props.currentUserUsername)
+const isOwner = computed(
+  () => props.ownerUsername === props.currentUserUsername,
+);
 </script>
 
 <template>
   <div class="collaborators-section flex-col gap-4">
-    <h3 class="section-title">Camp Collaborators</h3>
-    
+    <h3 class="section-title">{{ t("collab.title") }}</h3>
+
     <div class="members-list flex-col gap-2">
-      <div class="member-item flex justify-between items-center p-2 border rounded">
+      <div
+        class="member-item flex justify-between items-center p-2 border rounded"
+      >
         <div class="flex items-center gap-2">
           <span class="user-icon">👑</span>
           <span class="username">{{ ownerUsername }}</span>
-          <span class="badge owner-badge">{{ t('collab.owner') }}</span>
+          <span class="badge owner-badge">{{ t("collab.owner") }}</span>
         </div>
         <span class="text-mute italic text-sm">—</span>
       </div>
-      
-      <div v-for="username in collaborators" :key="username" class="member-item flex justify-between items-center p-2 border rounded">
+
+      <div
+        v-for="username in collaborators"
+        :key="username"
+        class="member-item flex justify-between items-center p-2 border rounded"
+      >
         <div class="flex items-center gap-2">
           <span class="user-icon">👤</span>
           <span class="username">{{ username }}</span>
         </div>
-        
-        <button 
-          v-if="isOwner || username === currentUserUsername" 
-          class="btn btn-sm btn-danger-outline" 
+
+        <button
+          v-if="isOwner || username === currentUserUsername"
+          class="btn btn-sm btn-danger-outline"
           @click="$emit('remove', username)"
         >
-          {{ username === currentUserUsername ? t('collab.remove') : t('btn.remove') }}
+          {{
+            username === currentUserUsername
+              ? t("collab.remove")
+              : t("btn.remove")
+          }}
         </button>
       </div>
     </div>
-    
+
     <div v-if="isOwner" class="invite-form flex-col gap-2 mt-4">
-      <label class="text-sm font-semibold">{{ t('collab.invite') }}</label>
+      <label class="text-sm font-semibold">{{ t("collab.invite") }}</label>
       <div class="flex gap-2">
-        <input 
-          type="text" 
-          class="input flex-1" 
-          v-model="newUsername" 
+        <input
+          type="text"
+          class="input flex-1"
+          v-model="newUsername"
           :placeholder="t('collab.username_placeholder')"
           @keyup.enter="handleInvite"
         />
-        <button class="btn btn-primary" @click="handleInvite" :disabled="!newUsername.trim()">{{ t('collab.invite_btn') }}</button>
+        <button
+          class="btn btn-primary"
+          @click="handleInvite"
+          :disabled="!newUsername.trim()"
+        >
+          {{ t("collab.invite_btn") }}
+        </button>
       </div>
-      <p class="text-xs text-mute">Collaborators have full access to edit meals and shopping lists.</p>
+      <p class="text-xs text-mute">{{ t("collab.invite_info") }}</p>
     </div>
   </div>
 </template>

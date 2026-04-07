@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
@@ -251,3 +252,11 @@ def get_current_user_status(request):
     if request.user.is_authenticated:
         return {"is_logged_in": True, "username": request.user.username}
     return {"is_logged_in": False}
+
+
+@api.get(path="/messages/", auth=None, response={200: list[tuple[str, str]]})
+def get_messages(request):
+    return [
+        (message.level_tag, message.message)
+        for message in messages.get_messages(request)
+    ]

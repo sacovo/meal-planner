@@ -11,6 +11,7 @@ When a django-invitations invite is accepted:
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.messages import add_message, constants as message_constants
 from django.core.mail import send_mail
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -68,5 +69,11 @@ def create_user_on_invite_accepted(sender, email, request, **kwargs):
         "registration/invite_set_password_subject.txt", context
     ).strip()
     body = render_to_string("registration/invite_set_password_email.html", context)
+
+    add_message(
+        request,
+        message_constants.SUCCESS,
+        "Du erhältst in Kürze eine E-Mail um dein Passwort festzulegen.",
+    )
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])

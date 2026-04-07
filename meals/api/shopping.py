@@ -1,15 +1,9 @@
 import io
 import asyncio
-import json
 from asgiref.sync import async_to_sync
 from django.http import StreamingHttpResponse
 from core.redis import get_redis_client
 
-import asyncio
-import json
-from asgiref.sync import async_to_sync
-from django.http import StreamingHttpResponse
-from core.redis import get_redis_client
 
 
 import polars as pl

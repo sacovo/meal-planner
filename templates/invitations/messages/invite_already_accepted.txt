@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans %}Deine Einladung für {{ email }} wurde bereits angenommen.{% endblocktrans %}
+{% endautoescape %}

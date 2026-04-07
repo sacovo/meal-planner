@@ -34,6 +34,7 @@ class CampAdmin(ModelAdmin):
     list_display = ("name", "start_date", "end_date", "default_people_count", "owner")
     search_fields = ("name",)
 
+
 class IngredientUnitConversionInline(TabularInline):
     model = IngredientUnitConversion
     extra = 1
@@ -87,16 +88,24 @@ class IngredientAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 @admin.register(IngredientUnitConversion)
 class IngredientUnitConversionAdmin(ModelAdmin):
-    list_display = ("ingredient",  "unit_name", "multiplier", "ingredient__base_unit", "needs_review")
+    list_display = (
+        "ingredient",
+        "unit_name",
+        "multiplier",
+        "ingredient__base_unit",
+        "needs_review",
+    )
     list_filter = ("needs_review", "ingredient__base_unit")
     search_fields = ("ingredient__name", "unit_name")
     list_editable = ("needs_review", "multiplier")
+
 
 class RecipeIngredientInline(TabularInline):
     model = RecipeIngredient
     extra = 1
 
     readonly_fields = ("ingredient", "unit", "amount")
+
 
 @admin.register(Recipe)
 class RecipeAdmin(ModelAdmin, TabbedTranslationAdmin):

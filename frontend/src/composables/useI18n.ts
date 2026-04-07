@@ -1,35 +1,35 @@
-import { ref, readonly } from 'vue'
+import { ref, readonly } from "vue";
 
-const texts = ref<Record<string, string>>({})
-const locale = ref<string>(localStorage.getItem('locale') || 'de')
-const loaded = ref(false)
+const texts = ref<Record<string, string>>({});
+const locale = ref<string>(localStorage.getItem("locale") || "de");
+const loaded = ref(false);
 
 export function useI18n() {
   function t(key: string, fallback?: string): string {
-    return texts.value[key] || fallback || key
+    return texts.value[key] || fallback || key;
   }
 
   async function loadTexts() {
     try {
-      const res = await fetch(`/api/content/texts/?lang=${locale.value}`)
+      const res = await fetch(`/api/content/texts/?lang=${locale.value}`);
       if (res.ok) {
-        texts.value = await res.json()
+        texts.value = await res.json();
       }
     } catch (err) {
-      console.error('Failed to load UI texts:', err)
+      console.error("Failed to load UI texts:", err);
     }
-    loaded.value = true
+    loaded.value = true;
   }
 
   async function setLocale(lang: string) {
-    locale.value = lang
-    localStorage.setItem('locale', lang)
+    locale.value = lang;
+    localStorage.setItem("locale", lang);
     // Set Django language cookie
     try {
-      await fetch(`/api/set-language/?language=${lang}`)
+      await fetch(`/api/set-language/?language=${lang}`);
     } catch (_) {}
     // Reload texts
-    await loadTexts()
+    await loadTexts();
   }
 
   return {
@@ -38,5 +38,5 @@ export function useI18n() {
     loaded: readonly(loaded),
     loadTexts,
     setLocale,
-  }
+  };
 }

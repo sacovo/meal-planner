@@ -54,12 +54,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
-    "invitations",
     "corsheaders",
     "django_vite",
     "meals",
     "content",
     "health_check",
+    "invitations",
 ]
 
 MIDDLEWARE = [
@@ -295,3 +295,6 @@ DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@mealplanner
 INVITATIONS_SIGNUP_REDIRECT = "frontend"
 # Allow accepting invitations via a plain GET (email links are always GET).
 INVITATIONS_CONFIRM_INVITE_ON_GET = True
+
+
+INVITATIONS_EMAIL_SUBJECT_PREFIX = "[Meal Planner] "

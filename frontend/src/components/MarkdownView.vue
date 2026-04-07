@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+import { computed } from "vue";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 const props = defineProps<{
-  content?: string | null
-}>()
+  content?: string | null;
+}>();
 
 const sanitizedHtml = computed(() => {
-  if (!props.content) return ''
-  
+  if (!props.content) return "";
+
   // Configure marked for safe links and other options if needed
-  const rawHtml = marked.parse(props.content) as string
-  
+  const rawHtml = marked.parse(props.content) as string;
+
   // Sanitize the HTML to prevent XSS
-  return DOMPurify.sanitize(rawHtml)
-})
+  return DOMPurify.sanitize(rawHtml);
+});
 </script>
 
 <template>
@@ -23,8 +23,8 @@ const sanitizedHtml = computed(() => {
 </template>
 
 <style scoped>
-.markdown-body :deep(h1), 
-.markdown-body :deep(h2), 
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
 .markdown-body :deep(h3) {
   margin-top: 1.5rem;
   margin-bottom: 1rem;
@@ -32,15 +32,21 @@ const sanitizedHtml = computed(() => {
   line-height: 1.25;
 }
 
-.markdown-body :deep(h1) { font-size: 1.5rem; }
-.markdown-body :deep(h2) { font-size: 1.25rem; }
-.markdown-body :deep(h3) { font-size: 1.1rem; }
+.markdown-body :deep(h1) {
+  font-size: 1.5rem;
+}
+.markdown-body :deep(h2) {
+  font-size: 1.25rem;
+}
+.markdown-body :deep(h3) {
+  font-size: 1.1rem;
+}
 
 .markdown-body :deep(p) {
   margin-bottom: 1rem;
 }
 
-.markdown-body :deep(ul), 
+.markdown-body :deep(ul),
 .markdown-body :deep(ol) {
   margin-bottom: 1rem;
   padding-left: 2rem;

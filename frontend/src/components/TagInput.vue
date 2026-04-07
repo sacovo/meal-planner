@@ -1,54 +1,61 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 const props = defineProps<{
-  modelValue: string[]
-  suggestions: string[]
-  placeholder?: string
-}>()
+  modelValue: string[];
+  suggestions: string[];
+  placeholder?: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string[]): void
-}>()
+  (e: "update:modelValue", value: string[]): void;
+}>();
 
-const query = ref('')
-const showDropdown = ref(false)
+const query = ref("");
+const showDropdown = ref(false);
 
 const filteredSuggestions = computed(() => {
-  const q = query.value.toLowerCase().trim()
-  if (!q) return props.suggestions.filter(s => !props.modelValue.includes(s))
-  return props.suggestions.filter(s => 
-    s.toLowerCase().includes(q) && !props.modelValue.includes(s)
-  )
-})
+  const q = query.value.toLowerCase().trim();
+  if (!q) return props.suggestions.filter((s) => !props.modelValue.includes(s));
+  return props.suggestions.filter(
+    (s) => s.toLowerCase().includes(q) && !props.modelValue.includes(s),
+  );
+});
 
 function addTag(tag: string) {
-  const trimmed = tag.trim()
+  const trimmed = tag.trim();
   if (trimmed && !props.modelValue.includes(trimmed)) {
-    emit('update:modelValue', [...props.modelValue, trimmed])
+    emit("update:modelValue", [...props.modelValue, trimmed]);
   }
-  query.value = ''
-  showDropdown.value = false
+  query.value = "";
+  showDropdown.value = false;
 }
 
 function removeTag(tag: string) {
-  emit('update:modelValue', props.modelValue.filter(t => t !== tag))
+  emit(
+    "update:modelValue",
+    props.modelValue.filter((t) => t !== tag),
+  );
 }
 
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Enter' || e.key === ',') {
-    e.preventDefault()
+  if (e.key === "Enter" || e.key === ",") {
+    e.preventDefault();
     if (query.value) {
-      addTag(query.value)
+      addTag(query.value);
     }
-  } else if (e.key === 'Backspace' && !query.value && props.modelValue.length > 0) {
-    removeTag(props.modelValue[props.modelValue.length - 1])
+  } else if (
+    e.key === "Backspace" &&
+    !query.value &&
+    props.modelValue.length > 0
+  ) {
+    removeTag(props.modelValue[props.modelValue.length - 1]);
   }
 }
 function handleBlur() {
   setTimeout(() => {
-    showDropdown.value = false
-  }, 200)
+    showDropdown.value = false;
+  }, 200);
 }
 </script>
 
@@ -59,10 +66,10 @@ function handleBlur() {
         {{ tag }}
         <button class="remove-btn" @click="removeTag(tag)">×</button>
       </span>
-      <input 
-        type="text" 
-        class="tag-input-field" 
-        v-model="query" 
+      <input
+        type="text"
+        class="tag-input-field"
+        v-model="query"
         :placeholder="modelValue.length === 0 ? placeholder : ''"
         @focus="showDropdown = true"
         @blur="handleBlur"
@@ -71,12 +78,11 @@ function handleBlur() {
       />
     </div>
 
-    <ul v-if="showDropdown && filteredSuggestions.length > 0" class="tag-dropdown">
-      <li 
-        v-for="s in filteredSuggestions" 
-        :key="s" 
-        @click="addTag(s)"
-      >
+    <ul
+      v-if="showDropdown && filteredSuggestions.length > 0"
+      class="tag-dropdown"
+    >
+      <li v-for="s in filteredSuggestions" :key="s" @click="addTag(s)">
         {{ s }}
       </li>
     </ul>
