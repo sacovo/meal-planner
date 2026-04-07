@@ -1,4 +1,16 @@
 import io
+import asyncio
+import json
+from asgiref.sync import async_to_sync
+from django.http import StreamingHttpResponse
+from core.redis import get_redis_client
+
+import asyncio
+import json
+from asgiref.sync import async_to_sync
+from django.http import StreamingHttpResponse
+from core.redis import get_redis_client
+
 
 import polars as pl
 from django.http import HttpResponse
@@ -271,6 +283,32 @@ def export_shared_shopping_list(request, token: str):
     return _generate_excel_response(sl)
 
 
+@router.get("/shared/shopping-lists/{token}/events", auth=None)
+async def shared_shopping_list_events(request, token: str):
+    async def event_stream():
+        redis_client = await get_redis_client()
+        pubsub = redis_client.pubsub()
+        channel_name = f"shopping_list_{token}"
+        await pubsub.subscribe(channel_name)
+        try:
+            while True:
+                message = await pubsub.get_message(
+                    ignore_subscribe_messages=True, timeout=10.0
+                )
+                if message and message["type"] == "message":
+                    yield f"data: {message['data']}\n\n"
+                else:
+                    yield ": heartbeat\n\n"
+                await asyncio.sleep(0.1)
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await pubsub.unsubscribe(channel_name)
+            await redis_client.aclose()
+
+    return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+
+
 @router.put(
     "/shared/shopping-lists/{token}/items/{item_id}/toggle",
     response=ShoppingListItemSchema,
@@ -304,5 +342,25 @@ def toggle_shared_shopping_item(request, token: str, item_id: str):
 
         inv.quantity_bought += base_diff
         inv.save()
+
+    # Publish SSE update
+    async def publish_update():
+        redis_client = await get_redis_client()
+        data = ShoppingListItemSchema.from_orm(item).dict()
+        if data.get("ingredient"):
+            # Ensure proper serialization of UUIDs or nested models if any
+            # Pydantic/Ninja Schema usually converts nicely with .json()
+            pass
+
+        # simpler to just use the json representation from the schema
+        # ninja's schema .json() handles datetime/uuid natively
+        message = ShoppingListItemSchema.from_orm(item).json()
+        await redis_client.publish(f"shopping_list_{token}", message)
+        await redis_client.aclose()
+
+    try:
+        async_to_sync(publish_update)()
+    except Exception as e:
+        print(f"Redis publish failed: {e}")
 
     return item

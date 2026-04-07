@@ -11,6 +11,7 @@ import {
 } from '../client'
 import { useFileDownload } from '../composables/useFileDownload'
 import { useI18n } from '@/composables/useI18n'
+import { useSSE } from '@/composables/useSSE'
 
 const route = useRoute()
 const { downloadBlob } = useFileDownload()
@@ -18,8 +19,10 @@ const { t } = useI18n()
 const sharedToken = route.params.token as string
 
 const shoppingList = ref<ShoppingListSchema | null>(null)
-let pollInterval: any = null
 const isLoggedIn = ref(false)
+
+const sseUrl = computed(() => `/api/meals/shared/shopping-lists/${sharedToken}/events`)
+const { on } = useSSE(() => sseUrl.value)
 
 async function checkAuth() {
   const { data } = await coreApiGetCurrentUserStatus()
@@ -97,11 +100,21 @@ function copyLink() {
 onMounted(() => {
   fetchList()
   checkAuth()
-  pollInterval = setInterval(fetchList, 5000)
+
+  on('message', (updatedItem: ShoppingListItemSchema) => {
+    if (shoppingList.value && shoppingList.value.items) {
+      const idx = shoppingList.value.items.findIndex((i: any) => i.id === updatedItem.id)
+      if (idx !== -1) {
+        shoppingList.value.items[idx] = updatedItem
+      } else {
+        // Fallback: If item is completely new, refetch entire list
+        fetchList()
+      }
+    }
+  })
 })
 
 onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval)
 })
 </script>
 
