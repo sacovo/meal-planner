@@ -173,12 +173,7 @@ function handleMealSelection(mealId: string, isSelected: boolean) {
 }
 
 .label-cell {
-  background: var(--color-bg-surface);
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-  /* Slight shadow to separate from scrollable row */
-  display: flex;
-  align-items: center;
-  min-height: 80px;
+  background: var(--color-bg-base);
 }
 
 .droppable-cell {
