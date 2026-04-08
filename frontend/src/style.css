@@ -471,6 +471,7 @@ label {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.5rem;
+  overflow-x: auto;
 }
 
 .page-title {
@@ -867,6 +868,15 @@ label {
   margin-bottom: 0.75rem;
 }
 
+.action-bar {
+  overflow-x: auto;
+}
+
+.list-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 /* ============================================================
    Responsive
    ============================================================ */
@@ -886,6 +896,22 @@ label {
     bottom: 2rem;
     right: 2rem;
     z-index: 0;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.1rem;
+  }
+
+  .grid.bottom-grid.grid.bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card.flex.justify-between.items-center.action-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.2rem;
   }
 }
 

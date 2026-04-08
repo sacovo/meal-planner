@@ -276,7 +276,7 @@ onMounted(fetchData);
 }
 
 .planner-layout.sidebar-collapsed {
-  grid-template-columns: 60px 1fr;
+  grid-template-columns: auto 1fr;
 }
 
 .bottom-grid {

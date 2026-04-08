@@ -165,6 +165,11 @@ function onDragStart(event: DragEvent, recipe: RecipeSchema) {
   border: 1px solid var(--color-border);
   position: relative;
   overflow: visible;
+  max-width: 300px;
+}
+
+.card.sidebar-collapsed {
+  padding: 0;
 }
 
 .toggle-sidebar-btn {

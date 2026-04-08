@@ -397,6 +397,7 @@ onMounted(fetchData);
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .meal-title {

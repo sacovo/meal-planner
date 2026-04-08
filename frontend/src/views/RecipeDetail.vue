@@ -411,6 +411,12 @@ onUnmounted(cleanup);
   gap: 2rem;
 }
 
+@media (max-width: 768px) {
+  .recipe-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .portions-display {
   font-size: 1.25rem;
   color: var(--color-text-mute);
@@ -502,10 +508,12 @@ onUnmounted(cleanup);
     transform: scale(1) rotate(0deg);
     opacity: 0.8;
   }
+
   50% {
     transform: scale(1.2) rotate(180deg);
     opacity: 1;
   }
+
   100% {
     transform: scale(1) rotate(360deg);
     opacity: 0.8;
@@ -539,6 +547,7 @@ onUnmounted(cleanup);
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(300%);
   }
