@@ -36,7 +36,7 @@ def check_recipe_edit_access(recipe, user):
 
 
 @router.get("/recipes", response=list[RecipeSchema])
-@paginate(PageNumberPagination, page_size=2)
+@paginate(PageNumberPagination, page_size=20)
 def list_recipes(
     request,
     q: str = None,
