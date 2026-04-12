@@ -24,7 +24,6 @@ from .meals import (
 from .recipes import (
     RecipeCreateSchema,
     RecipeImportRequestSchema,
-    RecipePaginatedSchema,
     RecipeSchema,
     RecipeUpdateSchema,
 )

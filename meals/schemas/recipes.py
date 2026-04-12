@@ -43,11 +43,6 @@ class RecipeCreateSchema(ModelSchema):
         fields = ["name", "description", "instructions", "tags", "default_portions"]
 
 
-class RecipePaginatedSchema(Schema):
-    items: list[RecipeSchema]
-    count: int
-
-
 class RecipeUpdateSchema(Schema):
     name: str | None = None
     description: str | None = None

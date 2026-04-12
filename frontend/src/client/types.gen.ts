@@ -209,6 +209,20 @@ export type GeneralCampItemCreateSchema = {
 };
 
 /**
+ * Input
+ */
+export type Input = {
+  /**
+   * Page
+   */
+  page?: number;
+  /**
+   * Page Size
+   */
+  page_size?: number | null;
+};
+
+/**
  * DietaryPreferenceSchema
  */
 export type DietaryPreferenceSchema = {
@@ -223,9 +237,9 @@ export type DietaryPreferenceSchema = {
 };
 
 /**
- * RecipePaginatedSchema
+ * PagedRecipeSchema
  */
-export type RecipePaginatedSchema = {
+export type PagedRecipeSchema = {
   /**
    * Items
    */
@@ -1158,10 +1172,6 @@ export type MealsApiRecipesListRecipesData = {
   path?: never;
   query?: {
     /**
-     * Page
-     */
-    page?: number;
-    /**
      * Q
      */
     q?: string | null;
@@ -1173,6 +1183,18 @@ export type MealsApiRecipesListRecipesData = {
      * Preference Id
      */
     preference_id?: number | null;
+    /**
+     * Ids
+     */
+    ids?: string | null;
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Page Size
+     */
+    page_size?: number | null;
   };
   url: "/api/meals/recipes";
 };
@@ -1181,7 +1203,7 @@ export type MealsApiRecipesListRecipesResponses = {
   /**
    * OK
    */
-  200: RecipePaginatedSchema;
+  200: PagedRecipeSchema;
 };
 
 export type MealsApiRecipesListRecipesResponse =

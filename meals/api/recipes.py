@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from ninja import Router
+from ninja.pagination import paginate, PageNumberPagination
 
 from meals.models import (
     DietaryPreference,
@@ -17,7 +18,6 @@ from meals.schemas.meals import DietaryPreferenceSchema
 from meals.schemas.recipes import (
     RecipeCreateSchema,
     RecipeImportRequestSchema,
-    RecipePaginatedSchema,
     RecipeSchema,
     RecipeUpdateSchema,
 )
@@ -35,13 +35,21 @@ def check_recipe_edit_access(recipe, user):
     return recipe
 
 
-@router.get("/recipes", response=RecipePaginatedSchema)
+@router.get("/recipes", response=list[RecipeSchema])
+@paginate(PageNumberPagination, page_size=2)
 def list_recipes(
-    request, page: int = 1, q: str = None, tags: str = None, preference_id: int = None
+    request,
+    q: str = None,
+    tags: str = None,
+    preference_id: int = None,
+    ids: str = None,
 ):
-    page_size = 20
-    offset = (page - 1) * page_size
     qs = Recipe.objects.all().order_by("name")
+
+    if ids:
+        id_list = [i.strip() for i in ids.split(",") if i.strip()]
+        return qs.filter(id__in=id_list)
+
     if q:
         qs = qs.filter(name__icontains=q)
     if tags:
@@ -51,10 +59,7 @@ def list_recipes(
     if preference_id:
         qs = qs.filter(preferences__id=preference_id)
 
-    count = qs.count()
-    items = list(qs[offset : offset + page_size])
-
-    return {"items": items, "count": count}
+    return qs
 
 
 @router.post("/recipes", response=RecipeSchema)

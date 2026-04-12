@@ -71,8 +71,26 @@ async function fetchData() {
       meals.value = allMeals.filter((m) => m.date === dateStr);
     }
 
-    const { data: allRecipes } = await mealsApiRecipesListRecipes();
-    if (allRecipes) recipes.value = allRecipes.items;
+    const uniqueRecipeIds = [
+      ...new Set(meals.value.map((m) => m.recipe).filter(Boolean)),
+    ];
+    recipes.value = [];
+    if (uniqueRecipeIds.length > 0) {
+      const chunkSize = 2; // Match backend pagination page size
+      const requests = [];
+      for (let i = 0; i < uniqueRecipeIds.length; i += chunkSize) {
+        const chunk = uniqueRecipeIds.slice(i, i + chunkSize);
+        requests.push(
+          mealsApiRecipesListRecipes({ query: { ids: chunk.join(",") } }),
+        );
+      }
+      const responses = await Promise.all(requests);
+      for (const { data } of responses) {
+        if (data?.items) {
+          recipes.value.push(...data.items);
+        }
+      }
+    }
 
     for (const meal of meals.value) {
       if (!ingredientsMap.value[meal.recipe]) {
@@ -183,7 +201,10 @@ onMounted(fetchData);
   <div class="container page-container">
     <div class="page-header no-print mb-8">
       <div class="header-top">
-        <button class="btn btn-secondary" @click="router.push(`/camps/${campId}`)">
+        <button
+          class="btn btn-secondary"
+          @click="router.push(`/camps/${campId}`)"
+        >
           &larr; {{ t("back") }}
         </button>
         <h2 v-if="camp" class="page-title">
@@ -198,7 +219,11 @@ onMounted(fetchData);
         </h2>
       </div>
       <div class="header-actions">
-        <button v-if="groupedMeals.length > 0" class="btn btn-secondary quick-nav-toggle" @click="isNavOpen = true">
+        <button
+          v-if="groupedMeals.length > 0"
+          class="btn btn-secondary quick-nav-toggle"
+          @click="isNavOpen = true"
+        >
           🕐 {{ t("slots") }}
         </button>
         <button class="btn btn-primary" @click="exportPDF">
@@ -212,10 +237,18 @@ onMounted(fetchData);
     </div>
 
     <div v-else>
-      <div v-if="groupedMeals.length > 0" class="drawer-backdrop no-print" :class="{ open: isNavOpen }"
-        @click="closeNav" />
+      <div
+        v-if="groupedMeals.length > 0"
+        class="drawer-backdrop no-print"
+        :class="{ open: isNavOpen }"
+        @click="closeNav"
+      />
 
-      <aside v-if="groupedMeals.length > 0" class="quick-nav-drawer no-print" :class="{ open: isNavOpen }">
+      <aside
+        v-if="groupedMeals.length > 0"
+        class="quick-nav-drawer no-print"
+        :class="{ open: isNavOpen }"
+      >
         <div class="drawer-header">
           <h3 class="mb-0">Quick Nav</h3>
           <button class="btn btn-secondary btn-sm" @click="closeNav">
@@ -225,7 +258,11 @@ onMounted(fetchData);
         <nav>
           <ul class="quick-nav-list">
             <li v-for="group in groupedMeals" :key="`drawer-${group.type}`">
-              <a class="quick-nav-link" :href="`#${getSlotAnchor(group.type)}`" @click="closeNav">
+              <a
+                class="quick-nav-link"
+                :href="`#${getSlotAnchor(group.type)}`"
+                @click="closeNav"
+              >
                 <span>{{ group.label }}</span>
                 <span class="text-mute">{{ group.meals.length }}</span>
               </a>
@@ -236,15 +273,27 @@ onMounted(fetchData);
 
       <div class="day-layout">
         <div id="printable-content" class="flex-col gap-8 print-container">
-          <div v-if="groupedMeals.length === 0" class="card text-center py-8 text-mute">
+          <div
+            v-if="groupedMeals.length === 0"
+            class="card text-center py-8 text-mute"
+          >
             No meals scheduled for this day.
           </div>
 
-          <section v-for="group in groupedMeals" :id="getSlotAnchor(group.type)" :key="group.type" class="slot-group">
+          <section
+            v-for="group in groupedMeals"
+            :id="getSlotAnchor(group.type)"
+            :key="group.type"
+            class="slot-group"
+          >
             <h2 class="slot-heading no-print">{{ group.label }}</h2>
 
-            <div v-for="meal in group.meals" :key="meal.id as string" class="meal-section card"
-              :class="{ 'meal-done': meal.is_done }">
+            <div
+              v-for="meal in group.meals"
+              :key="meal.id as string"
+              class="meal-section card"
+              :class="{ 'meal-done': meal.is_done }"
+            >
               <div class="flex justify-between items-end meal-header">
                 <div>
                   <div class="flex items-center gap-2 no-print mb-2">
@@ -258,7 +307,10 @@ onMounted(fetchData);
                   <h1 class="meal-title">{{ getRecipe(meal.recipe)?.name }}</h1>
                 </div>
                 <div class="flex flex-col items-end gap-2">
-                  <button class="btn btn-secondary no-print" @click="toggleMealDone(meal)">
+                  <button
+                    class="btn btn-secondary no-print"
+                    @click="toggleMealDone(meal)"
+                  >
                     {{
                       meal.is_done
                         ? t("meal.mark_not_cooked")
@@ -284,11 +336,16 @@ onMounted(fetchData);
                 <div>
                   <h3 class="section-heading">{{ t("recipe.ingredients") }}</h3>
                   <ul class="list-reset">
-                    <li v-for="ri in ingredientsMap[meal.recipe]" :key="ri.id as number"
-                      class="flex justify-between py-2 ingredient-row">
+                    <li
+                      v-for="ri in ingredientsMap[meal.recipe]"
+                      :key="ri.id as number"
+                      class="flex justify-between py-2 ingredient-row"
+                    >
                       <span class="font-bold">{{ ri.ingredient.name }}</span>
-                      <span class="text-mute">{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }}
-                        {{ ri.unit }}</span>
+                      <span class="text-mute"
+                        >{{ Math.round(getScaledAmount(ri, meal) * 100) / 100 }}
+                        {{ ri.unit }}</span
+                      >
                     </li>
                     <li v-if="!ingredientsMap[meal.recipe]" class="text-mute">
                       No ingredients found.
@@ -300,8 +357,10 @@ onMounted(fetchData);
                     {{ t("recipe.instructions") }}
                   </h3>
                   <div class="instructions-text">
-                    <MarkdownView v-if="getRecipe(meal.recipe)?.instructions"
-                      :content="getRecipe(meal.recipe)?.instructions" />
+                    <MarkdownView
+                      v-if="getRecipe(meal.recipe)?.instructions"
+                      :content="getRecipe(meal.recipe)?.instructions"
+                    />
                     <div v-else class="text-mute">
                       No instructions provided.
                     </div>
@@ -317,7 +376,10 @@ onMounted(fetchData);
           <nav>
             <ul class="quick-nav-list">
               <li v-for="group in groupedMeals" :key="`desktop-${group.type}`">
-                <a class="quick-nav-link" :href="`#${getSlotAnchor(group.type)}`">
+                <a
+                  class="quick-nav-link"
+                  :href="`#${getSlotAnchor(group.type)}`"
+                >
                   <span>{{ group.label }}</span>
                   <span class="text-mute">{{ group.meals.length }}</span>
                 </a>
