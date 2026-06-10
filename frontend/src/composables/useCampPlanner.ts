@@ -179,6 +179,21 @@ export function useCampPlanner(campId: string) {
     return updatedMeal;
   }
 
+  async function moveMeal(mealId: string, date: string, mealType: string) {
+    const { data: updatedMeal } = await mealsApiMealsUpdateCampMeal({
+      path: { camp_id: campId, meal_id: mealId },
+      body: {
+        date,
+        meal_type: mealType,
+      },
+    });
+    if (updatedMeal) {
+      const idx = meals.value.findIndex((m) => m.id === mealId);
+      if (idx !== -1) meals.value[idx] = updatedMeal;
+    }
+    return updatedMeal;
+  }
+
   async function toggleMealDone(meal: CampMealSchema) {
     try {
       const { data } = await mealsApiMealsToggleCampMealDone({
@@ -401,6 +416,7 @@ export function useCampPlanner(campId: string) {
     addMeal,
     removeMeal,
     updateMeal,
+    moveMeal,
     toggleMealDone,
     getMealsForDay,
     isDaySelected,

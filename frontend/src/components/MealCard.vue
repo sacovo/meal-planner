@@ -17,12 +17,22 @@ const emit = defineEmits<{
   (e: "toggle-done"): void;
   (e: "remove"): void;
 }>();
+
+function onDragStart(event: DragEvent) {
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("meal_id", props.meal.id as string);
+  }
+}
 </script>
 
 <template>
   <div
     class="allocated-meal flex-col"
     :class="{ 'meal-done': meal.is_done }"
+    draggable="true"
+    @dragstart="onDragStart"
     @click="$emit('edit')"
   >
     <div class="flex justify-between items-center w-full">
@@ -78,7 +88,12 @@ const emit = defineEmits<{
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
+}
+
+.allocated-meal:active {
+  cursor: grabbing;
 }
 
 .allocated-meal:last-child {
