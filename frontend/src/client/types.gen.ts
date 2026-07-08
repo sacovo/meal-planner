@@ -558,6 +558,14 @@ export type CampMealUpdateSchema = {
      * Serves Preference Id
      */
     serves_preference_id?: number | null;
+    /**
+     * Date
+     */
+    date?: string | null;
+    /**
+     * Meal Type
+     */
+    meal_type?: string | null;
 };
 
 /**

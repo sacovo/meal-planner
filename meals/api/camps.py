@@ -22,8 +22,9 @@ User = get_user_model()
 def check_camp_access(camp_id, user):
     """Verify the user is the owner or a collaborator of the camp."""
     return get_object_or_404(
-        Camp,
-        models.Q(id=camp_id) & (models.Q(owner=user) | models.Q(collaborators=user)),
+        Camp.objects.filter(
+            models.Q(id=camp_id) & (models.Q(owner=user) | models.Q(collaborators=user))
+        ).distinct(),
     )
 
 
@@ -43,9 +44,10 @@ def create_camp(request, data: CampCreateSchema):
 @router.get("/camps/{camp_id}", response=CampSchema)
 def get_camp(request, camp_id: str):
     return get_object_or_404(
-        Camp,
-        models.Q(id=camp_id)
-        & (models.Q(owner=request.user) | models.Q(collaborators=request.user)),
+        Camp.objects.filter(
+            models.Q(id=camp_id)
+            & (models.Q(owner=request.user) | models.Q(collaborators=request.user)),
+        ).distinct()
     )
 
 

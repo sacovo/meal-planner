@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date as datetime_date
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
@@ -42,7 +42,7 @@ class CampMealSchema(ModelSchema):
 class CampMealCreateSchema(Schema):
     recipe_id: UUID
     meal_type: str
-    date: date
+    date: datetime_date
     override_people_count: int = None
     serves_preference_id: int = None
 
@@ -50,3 +50,5 @@ class CampMealCreateSchema(Schema):
 class CampMealUpdateSchema(Schema):
     override_people_count: int | None = None
     serves_preference_id: int | None = None
+    date: datetime_date | None = None
+    meal_type: str | None = None

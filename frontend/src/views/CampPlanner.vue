@@ -42,6 +42,7 @@ const {
   recipeNames,
   fetchData,
   addMeal,
+  moveMeal,
   removeMeal,
   updateMeal,
   toggleMealDone,
@@ -71,9 +72,15 @@ function startDrag(event: DragEvent, recipe: RecipeSchema) {
 }
 
 async function onDrop(event: DragEvent, date: string, mealType: string) {
+  const mealId = event.dataTransfer?.getData("meal_id");
+  if (mealId) {
+    await moveMeal(mealId, date, mealType);
+    return;
+  }
   const recipeId = event.dataTransfer?.getData("recipe_id");
-  if (!recipeId) return;
-  await addMeal(recipeId, date, mealType);
+  if (recipeId) {
+    await addMeal(recipeId, date, mealType);
+  }
 }
 
 function openEditMeal(meal: CampMealSchema) {

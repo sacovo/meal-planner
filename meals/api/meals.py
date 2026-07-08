@@ -44,6 +44,10 @@ def update_camp_meal(request, camp_id: str, meal_id: str, data: CampMealUpdateSc
         meal.override_people_count = data.override_people_count
     if data.serves_preference_id is not None:
         meal.serves_preference_id = data.serves_preference_id
+    if data.date is not None:
+        meal.date = data.date
+    if data.meal_type is not None:
+        meal.meal_type = data.meal_type
     meal.save()
     return meal
 
