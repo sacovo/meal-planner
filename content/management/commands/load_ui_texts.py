@@ -99,6 +99,7 @@ DEFAULT_TEXTS = {
     "recipe.import": "Rezept importieren",
     "recipe.import_text": "Text einfügen",
     "recipe.importing": "Wird importiert...",
+    "recipe.import_overwrite_confirm": "Achtung: Dies überschreibt alle bestehenden Zutaten und Angaben dieses Rezepts. Möchtest du fortfahren?",
     "recipe.add_ingredient": "Zutat hinzufügen",
     "recipe.ingredient_name": "Zutatname",
     "recipe.amount": "Menge",

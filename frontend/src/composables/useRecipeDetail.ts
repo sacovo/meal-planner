@@ -13,17 +13,20 @@ import {
   coreApiGetCurrentUserStatus,
   mealsApiRecipesInviteRecipeCollaborator,
   mealsApiRecipesRemoveRecipeCollaborator,
+  mealsApiRecipesImportIntoRecipe,
   type RecipeSchema,
   type RecipeIngredientSchema,
   type IngredientSchema,
   type DietaryPreferenceSchema,
 } from "../client";
+import { useI18n } from "./useI18n";
 
 /**
  * Controller logic for the RecipeDetail view.
  * Manages recipe CRUD, ingredient editing, collaborators, and AI import polling.
  */
 export function useRecipeDetail(recipeId: string) {
+  const { t } = useI18n();
   // ---- Core state ----
   const recipe = ref<RecipeSchema | null>(null);
   const ingredients = ref<RecipeIngredientSchema[]>([]);
@@ -277,6 +280,44 @@ export function useRecipeDetail(recipeId: string) {
     }
   }
 
+  // ---- AI Import for existing recipe ----
+  const showImportModal = ref(false);
+  const importText = ref("");
+  const isImportingAI = ref(false);
+
+  async function handleImportIntoRecipe() {
+    if (!importText.value || !recipe.value) return;
+    if (
+      !confirm(
+        t(
+          "recipe.import_overwrite_confirm",
+          "Attention: This will overwrite all existing ingredients and details of this recipe. Do you want to proceed?",
+        ),
+      )
+    )
+      return;
+
+    isImportingAI.value = true;
+    try {
+      const { data } = await mealsApiRecipesImportIntoRecipe({
+        path: { recipe_id: recipeId },
+        body: { raw_text: importText.value },
+      });
+      if (data) {
+        showImportModal.value = false;
+        importText.value = "";
+        recipe.value = data;
+        if (data.is_importing && !isPolling.value) {
+          startPolling();
+        }
+      }
+    } catch (e) {
+      alert("Import failed. Make sure your GEMINI_API_KEY is set in .env");
+    } finally {
+      isImportingAI.value = false;
+    }
+  }
+
   // ---- Lifecycle ----
   function init() {
     fetchCurrentUser();
@@ -317,6 +358,9 @@ export function useRecipeDetail(recipeId: string) {
     editIngAmount,
     editIngUnit,
     isPolling,
+    showImportModal,
+    importText,
+    isImportingAI,
     // Methods
     init,
     cleanup,
@@ -330,5 +374,6 @@ export function useRecipeDetail(recipeId: string) {
     removeIngredient,
     inviteCollaborator,
     removeCollaborator,
+    handleImportIntoRecipe,
   };
 }

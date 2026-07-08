@@ -130,7 +130,7 @@ class AIRecipeLayout(BaseModel):
 
 
 @shared_task
-def import_recipe_ai_task(recipe_id, raw_text):
+def import_recipe_ai_task(recipe_id, raw_text, override_existing=False):
     from meals.services import add_ingredient_to_recipe
 
     api_key = os.environ.get("GEMINI_API_KEY", "")
@@ -163,6 +163,9 @@ def import_recipe_ai_task(recipe_id, raw_text):
             },
         )
         parsed = json.loads(response.text)
+
+        if override_existing:
+            recipe.ingredients.all().delete()
 
         recipe.name = parsed.get("name", recipe.name)
         recipe.description = parsed.get("description", "")

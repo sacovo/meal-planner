@@ -80,6 +80,16 @@ def import_recipe(request, data: RecipeImportRequestSchema):
     return recipe
 
 
+@router.post("/recipes/{recipe_id}/import", response=RecipeSchema)
+def import_into_recipe(request, recipe_id: str, data: RecipeImportRequestSchema):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    check_recipe_edit_access(recipe, request.user)
+    recipe.is_importing = True
+    recipe.save()
+    import_recipe_ai_task.delay(recipe.id, data.raw_text, override_existing=True)
+    return recipe
+
+
 @router.get("/recipes/{recipe_id}", response=RecipeSchema)
 def get_recipe(request, recipe_id: str):
     return get_object_or_404(Recipe, id=recipe_id)

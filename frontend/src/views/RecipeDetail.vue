@@ -44,6 +44,10 @@ const {
   removeIngredient,
   inviteCollaborator,
   removeCollaborator,
+  showImportModal,
+  importText,
+  isImportingAI,
+  handleImportIntoRecipe,
 } = useRecipeDetail(recipeId);
 
 onMounted(init);
@@ -88,6 +92,13 @@ onUnmounted(cleanup);
               @click="showCollaboratorModal = true"
             >
               👥 {{ t("recipe.collaborators") }}
+            </button>
+            <button
+              v-if="canEdit && !isEditingRecipe"
+              class="btn btn-secondary"
+              @click="showImportModal = true"
+            >
+              ✨ {{ t("recipe.import") }}
             </button>
             <button
               v-if="!isEditingRecipe && canEdit"
@@ -394,6 +405,46 @@ onUnmounted(cleanup);
             </button>
           </li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Magic Import Modal -->
+    <div
+      v-if="showImportModal"
+      class="modal-backdrop"
+      @click.self="showImportModal = false"
+    >
+      <div class="modal modal-wide">
+        <h3 class="flex items-center gap-2">✨ {{ t("recipe.import") }}</h3>
+        <p class="text-mute text-sm mb-4">
+          {{ t("recipe.import_text") }}
+        </p>
+
+        <div v-if="!isImportingAI" class="flex-col gap-4">
+          <textarea
+            class="input"
+            v-model="importText"
+            :placeholder="t('recipe.import_text')"
+            rows="10"
+          ></textarea>
+          <div class="flex gap-2 justify-end">
+            <button class="btn btn-secondary" @click="showImportModal = false">
+              {{ t("btn.cancel") }}
+            </button>
+            <button
+              class="btn btn-primary"
+              @click="handleImportIntoRecipe"
+              :disabled="!importText"
+            >
+              {{ t("recipe.import") }}
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="flex-col items-center justify-center py-8">
+          <div class="spinner"></div>
+          <p class="mt-6 font-bold">{{ t("recipe.importing") }}</p>
+        </div>
       </div>
     </div>
   </div>
